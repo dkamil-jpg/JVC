@@ -280,6 +280,17 @@ const Kiosk = () => {
     setLoading(true);
     const dob = `${formData.dob_year}-${formData.dob_month.padStart(2, '0')}-${formData.dob_day.padStart(2, '0')}`;
 
+    // Get signature images as base64
+    let signatureDataBase64 = null;
+    let signatureMedicalBase64 = null;
+    
+    if (signatureDataRef.current) {
+      signatureDataBase64 = signatureDataRef.current.toDataURL('image/png');
+    }
+    if (signatureMedicalRef.current) {
+      signatureMedicalBase64 = signatureMedicalRef.current.toDataURL('image/png');
+    }
+
     try {
       await axios.post(`${API}/kiosk/register`, {
         first_name: formData.first_name,
@@ -298,7 +309,12 @@ const Kiosk = () => {
         conditions: formData.conditions,
         surgeries: formData.surgeries,
         alerts: formData.alerts.join(', '),
-        skip_queue: false
+        skip_queue: false,
+        // Consent data with signatures
+        consent_data_processing: consents.dataProcessing,
+        consent_medical_disclaimer: consents.medicalDisclaimer,
+        signature_data_processing: signatureDataBase64,
+        signature_medical_disclaimer: signatureMedicalBase64
       });
 
       setStep(4);
