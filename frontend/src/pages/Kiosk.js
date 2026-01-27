@@ -24,10 +24,17 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
 // Signature Pad Component
-const SignaturePad = ({ onSignatureChange, label }) => {
+const SignaturePad = ({ onSignatureChange, label, signatureRef }) => {
   const canvasRef = useRef(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [hasSignature, setHasSignature] = useState(false);
+
+  // Expose canvas ref to parent
+  useEffect(() => {
+    if (signatureRef) {
+      signatureRef.current = canvasRef.current;
+    }
+  }, [signatureRef]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
