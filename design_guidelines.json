@@ -1,0 +1,167 @@
+{
+  "brand_identity": {
+    "name": "Just Vitality",
+    "archetype": "The Performance Pro (Medical Edition)",
+    "emotional_tone": "Professional, Trustworthy, Efficient, Calm",
+    "theme_strategy": "Medical Dark Mode (Deep Slate/Navy base, high contrast data)",
+    "core_values": ["Precision", "Empathy", "Clarity"]
+  },
+  "typography": {
+    "font_family": {
+      "headings": "Plus Jakarta Sans, sans-serif",
+      "body": "Inter, sans-serif",
+      "mono": "JetBrains Mono, monospace"
+    },
+    "weights": {
+      "light": 300,
+      "regular": 400,
+      "medium": 500,
+      "bold": 700
+    },
+    "usage_rules": {
+      "headings": "Use Plus Jakarta Sans for all H1-H6. Tracking tight (-0.02em).",
+      "body": "Use Inter for all paragraphs and UI text. Relaxed line height (1.6).",
+      "data": "Use tabular-nums class for all numerical data in tables and dashboards."
+    }
+  },
+  "colors": {
+    "palette": {
+      "background": {
+        "default": "#020617",
+        "paper": "#0f172a",
+        "subtle": "#1e293b"
+      },
+      "primary": {
+        "main": "#3b82f6",
+        "light": "#60a5fa",
+        "dark": "#2563eb",
+        "contrast": "#ffffff"
+      },
+      "secondary": {
+        "main": "#64748b",
+        "light": "#94a3b8",
+        "dark": "#475569"
+      },
+      "success": {
+        "main": "#10b981",
+        "light": "#34d399",
+        "dark": "#059669"
+      },
+      "analytics": {
+        "main": "#8b5cf6",
+        "light": "#a78bfa",
+        "dark": "#7c3aed"
+      },
+      "text": {
+        "primary": "#f8fafc",
+        "secondary": "#94a3b8",
+        "muted": "#64748b"
+      },
+      "border": {
+        "default": "#1e293b",
+        "active": "#3b82f6"
+      }
+    },
+    "usage_rules": {
+      "primary": "Use for primary actions (Login, Submit), active states, and key brand moments.",
+      "success": "Use EXCLUSIVELY for Kiosk confirmation steps and positive health indicators.",
+      "analytics": "Use for charts, graphs, and insight highlights in the Analytics module.",
+      "background": "Avoid pure black (#000000). Use the deep slate palette for a softer, premium feel."
+    }
+  },
+  "visual_enhancers": {
+    "glassmorphism": {
+      "usage": "Overlays, sticky headers, and modal backdrops.",
+      "style": "bg-slate-900/70 backdrop-blur-xl border border-white/10 shadow-2xl"
+    },
+    "gradients": {
+      "usage": "Subtle backgrounds for 'Hero' areas only. NO text gradients.",
+      "style": "bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800"
+    },
+    "shadows": {
+      "card": "shadow-[0_8px_30px_rgb(0,0,0,0.12)]",
+      "glow": "shadow-[0_0_20px_rgba(59,130,246,0.5)]"
+    },
+    "borders": {
+      "default": "border border-slate-800",
+      "active": "border border-blue-500/50"
+    }
+  },
+  "layout_system": {
+    "grid_strategy": {
+      "dashboard": "grid grid-cols-1 md:grid-cols-12 gap-6",
+      "kiosk": "flex flex-col items-center justify-center max-w-2xl mx-auto space-y-8",
+      "analytics": "grid grid-cols-1 md:grid-cols-4 gap-4 auto-rows-[minmax(180px,auto)]"
+    },
+    "spacing": {
+      "container_padding": "p-6 md:p-8 lg:p-12",
+      "section_gap": "gap-8",
+      "component_gap": "space-y-4"
+    }
+  },
+  "components": {
+    "buttons": {
+      "primary": "bg-blue-600 hover:bg-blue-700 text-white rounded-full px-8 py-3 font-medium transition-all shadow-lg hover:shadow-blue-500/25",
+      "secondary": "bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-full px-6 py-2 border border-slate-700 transition-all",
+      "kiosk_large": "w-full h-24 text-2xl font-bold rounded-2xl bg-slate-800 hover:bg-blue-600 hover:text-white border-2 border-slate-700 hover:border-blue-500 transition-all duration-300 flex items-center justify-center gap-4"
+    },
+    "cards": {
+      "dashboard": "bg-slate-900/50 border border-slate-800 rounded-xl p-6 hover:border-slate-700 transition-colors",
+      "kiosk_option": "bg-slate-800/80 backdrop-blur-sm border border-slate-700 rounded-2xl p-8 text-center hover:scale-[1.02] transition-transform cursor-pointer"
+    },
+    "inputs": {
+      "default": "bg-slate-950 border-slate-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-lg h-11 px-4 text-slate-200 placeholder:text-slate-600"
+    }
+  },
+  "image_assets": {
+    "launcher_bg": {
+      "url": "https://images.unsplash.com/photo-1584884013345-88b9cf247c0c",
+      "alt": "Modern Clinic Hallway",
+      "usage": "Background for the main Launcher screen with heavy dark overlay (bg-slate-950/90)."
+    },
+    "login_bg": {
+      "url": "https://images.unsplash.com/photo-1645477704075-cb3d14b349ee",
+      "alt": "Medical Office Dark",
+      "usage": "Split screen background for Login page."
+    },
+    "kiosk_success": {
+      "url": "https://images.unsplash.com/photo-1758691461935-202e2ef6b69f",
+      "alt": "Friendly Doctor",
+      "usage": "Success screen for Kiosk check-in."
+    },
+    "analytics_abstract": {
+      "url": "https://images.unsplash.com/photo-1759270463226-c5e04a4542c1",
+      "alt": "Abstract Data Visualization",
+      "usage": "Subtle background pattern or card header in Analytics module."
+    }
+  },
+  "motion": {
+    "transitions": "transition-all duration-200 ease-out",
+    "hover_effects": "hover:-translate-y-1 hover:shadow-lg",
+    "page_transition": {
+      "initial": { "opacity": 0, "y": 20 },
+      "animate": { "opacity": 1, "y": 0 },
+      "exit": { "opacity": 0, "y": -20 }
+    }
+  },
+  "accessibility": {
+    "contrast": "Ensure all text meets WCAG AA standards. Use slate-200 for body text on slate-900 backgrounds.",
+    "focus_states": "Visible focus rings (ring-2 ring-blue-500) on all interactive elements.",
+    "touch_targets": "Minimum 44x44px for all touch targets, especially in Kiosk mode."
+  },
+  "instructions_to_main_agent": [
+    "Implement the 'Medical Dark' theme using the specified Slate palette.",
+    "Use 'Plus Jakarta Sans' for headings to give a modern, trustworthy feel.",
+    "For the Kiosk, prioritize large touch targets and clear, step-by-step navigation.",
+    "For Analytics, use the 'Bento Grid' layout with the specified purple accents.",
+    "Ensure all interactive elements have the 'data-testid' attribute.",
+    "Use Shadcn UI components but customize them with the 'Medical Dark' styling (remove default rounded-md, use rounded-lg or rounded-xl).",
+    "Do NOT use gradients for text. Keep text solid for maximum readability."
+  ],
+  "universal_guidelines": [
+    "Avoid generic 'AI slop' designs. Focus on depth, hierarchy, and 'medical precision'.",
+    "Use glassmorphism sparingly but effectively for depth.",
+    "Ensure the 'Staff Portal' is dense and data-rich, while the 'Kiosk' is sparse and focused.",
+    "Always use the provided image URLs for their respective sections."
+  ]
+}
