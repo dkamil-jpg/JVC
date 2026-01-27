@@ -41,10 +41,12 @@ const StaffPortal = () => {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [adminModalOpen, setAdminModalOpen] = useState(false);
   const [pdfModalOpen, setPdfModalOpen] = useState(false);
+  const [consentsModalOpen, setConsentsModalOpen] = useState(false);
   
   // Data
   const [visits, setVisits] = useState([]);
   const [auditLogs, setAuditLogs] = useState([]);
+  const [patientConsents, setPatientConsents] = useState([]);
   const [editForm, setEditForm] = useState({});
   const [visitForm, setVisitForm] = useState({ treatment: '', notes: '', consultant: '' });
   
