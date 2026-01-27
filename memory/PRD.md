@@ -68,6 +68,21 @@ Poprawiony plik `/app/gs_fixed.txt` zawiera:
   - [x] Tworzenie kopii zapasowych
   - [x] Przywracanie z kopii zapasowych
   - [x] Usuwanie kopii zapasowych
+- [x] **Consent Signatures (2026-01-27):**
+  - [x] Podpisy zapisywane jako base64 w MongoDB (kolekcja `consents`)
+  - [x] Deklaracje pacjenta (alerty, warunki, leki) zapisywane wraz z podpisem
+  - [x] Przycisk "Consents" w Staff Portal do przeglądania
+- [x] **Automatic Backups:**
+  - [x] Scheduler o 2:00 AM UTC
+  - [x] Przechowuje 30 ostatnich automatycznych kopii
+- [x] **Kiosk Mode for Tablet:**
+  - [x] URL: `/kiosk?mode=locked`
+  - [x] PIN do wyjścia (ustawiany w Admin Panel)
+  - [x] Tryb pełnoekranowy
+  - [x] Blokada klawiszy (Esc, F11)
+- [x] **UI Fixes:**
+  - [x] Interface w języku angielskim
+  - [x] Poprawiona szerokość kolumn w logach
 
 ### P1 (Next)
 - [ ] Import danych z Google Sheets
