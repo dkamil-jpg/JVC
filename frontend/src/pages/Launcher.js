@@ -120,7 +120,7 @@ const Launcher = () => {
               className="text-xs text-slate-600 hover:text-emerald-500 transition-colors flex items-center gap-1 mx-auto"
             >
               <Lock className="w-3 h-3" />
-              Launch Tablet Kiosk Mode (PIN: 1234)
+              Launch Tablet Kiosk Mode
             </button>
           </div>
         </div>
