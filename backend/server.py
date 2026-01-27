@@ -946,6 +946,42 @@ async def get_patient_visits(patient_id: str, user: dict = Depends(verify_token)
     visits = await db.visits.find({"patient_id": patient_id}, {"_id": 0}).sort("date", -1).to_list(100)
     return visits
 
+@api_router.get("/patients/{patient_id}/consents")
+async def get_patient_consents(patient_id: str, user: dict = Depends(verify_token)):
+    """Get all consent records for a patient with signatures"""
+    consents = await db.consents.find({"patient_id": patient_id}, {"_id": 0}).sort("timestamp", -1).to_list(100)
+    return {"success": True, "consents": consents}
+
+# ==========================================
+# KIOSK SETTINGS
+# ==========================================
+
+@api_router.get("/kiosk/settings")
+async def get_kiosk_settings():
+    """Get kiosk settings (public endpoint for kiosk mode)"""
+    settings = await db.settings.find_one({"type": "kiosk"})
+    if not settings:
+        return {"exit_pin": "1234"}
+    return {"exit_pin": settings.get("exit_pin", "1234")}
+
+@api_router.post("/kiosk/settings")
+async def update_kiosk_settings(data: KioskSettings, user: dict = Depends(verify_admin)):
+    """Update kiosk settings - ADMIN ONLY"""
+    await db.settings.update_one(
+        {"type": "kiosk"},
+        {"$set": {"type": "kiosk", "exit_pin": data.exit_pin}},
+        upsert=True
+    )
+    await log_system_event("KIOSK_SETTINGS", f"Updated kiosk PIN", user["username"])
+    return {"success": True}
+
+@api_router.post("/kiosk/verify-pin")
+async def verify_kiosk_pin(pin: str):
+    """Verify PIN to exit kiosk mode"""
+    settings = await db.settings.find_one({"type": "kiosk"})
+    correct_pin = settings.get("exit_pin", "1234") if settings else "1234"
+    return {"success": pin == correct_pin}
+
 # ==========================================
 # DASHBOARD ENDPOINT
 # ==========================================
