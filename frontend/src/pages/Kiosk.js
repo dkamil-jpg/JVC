@@ -200,6 +200,88 @@ const Kiosk = () => {
   const signatureDataRef = useRef(null);
   const signatureMedicalRef = useRef(null);
 
+  // Fullscreen handling for kiosk mode
+  const enterFullscreen = () => {
+    const elem = document.documentElement;
+    if (elem.requestFullscreen) {
+      elem.requestFullscreen();
+    } else if (elem.webkitRequestFullscreen) {
+      elem.webkitRequestFullscreen();
+    } else if (elem.msRequestFullscreen) {
+      elem.msRequestFullscreen();
+    }
+    setIsFullscreen(true);
+  };
+
+  const exitFullscreen = () => {
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
+    } else if (document.webkitExitFullscreen) {
+      document.webkitExitFullscreen();
+    } else if (document.msExitFullscreen) {
+      document.msExitFullscreen();
+    }
+    setIsFullscreen(false);
+  };
+
+  // Handle exit attempt in kiosk mode
+  const handleExitAttempt = () => {
+    if (isKioskMode) {
+      setShowPinModal(true);
+      setPinInput('');
+      setPinError('');
+    } else {
+      navigate('/');
+    }
+  };
+
+  // Verify PIN and exit kiosk mode
+  const handlePinSubmit = async () => {
+    try {
+      const response = await axios.post(`${API}/kiosk/verify-pin`, null, {
+        params: { pin: pinInput }
+      });
+      if (response.data.success) {
+        exitFullscreen();
+        navigate('/');
+      } else {
+        setPinError('Incorrect PIN');
+        setPinInput('');
+      }
+    } catch (err) {
+      setPinError('Verification failed');
+    }
+  };
+
+  // Auto-enter fullscreen in kiosk mode
+  useEffect(() => {
+    if (isKioskMode && !isFullscreen) {
+      // Prompt to enter fullscreen
+      const timer = setTimeout(() => {
+        enterFullscreen();
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [isKioskMode]);
+
+  // Prevent keyboard shortcuts in kiosk mode
+  useEffect(() => {
+    if (!isKioskMode) return;
+    
+    const handleKeyDown = (e) => {
+      // Block F11, Escape, Alt+F4, Ctrl+W
+      if (e.key === 'F11' || e.key === 'Escape' || 
+          (e.altKey && e.key === 'F4') || 
+          (e.ctrlKey && e.key === 'w')) {
+        e.preventDefault();
+        setShowPinModal(true);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isKioskMode]);
+
   const updateField = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     setError('');
