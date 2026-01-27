@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useClinic } from '../contexts/ClinicContext';
@@ -9,160 +9,92 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from '@/components/ui/dialog';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import {
-  Home,
-  Search,
-  RefreshCw,
-  Menu,
-  X,
-  LogOut,
-  User,
-  Phone,
-  Mail,
-  MapPin,
-  AlertTriangle,
-  Pill,
-  Heart,
-  History,
-  Plus,
-  Edit,
-  Trash2,
-  FileText,
-  ChevronDown,
-  ChevronRight,
-  Loader2,
-  Shield,
-  Users,
-  Settings,
-  Download,
-  Key,
-  UserPlus,
-  ClipboardList,
-  Lock,
-  Unlock
+  Home, Search, RefreshCw, Menu, X, LogOut, User, Phone, Mail, MapPin,
+  AlertTriangle, Pill, Heart, History, Plus, Edit, Trash2, ChevronDown,
+  ChevronRight, Loader2, Shield, Users, Settings, Download, Key, UserPlus,
+  ClipboardList, Lock, Unlock, Crown
 } from 'lucide-react';
 
 const StaffPortal = () => {
   const navigate = useNavigate();
   const { user, logout, isManager, isAdmin, api } = useAuth();
   const { 
-    patients, 
-    queue, 
-    selectedPatient, 
-    setSelectedPatient,
-    loading,
-    loadDashboardData,
-    loadPatient,
-    updatePatient,
-    deletePatient,
-    getPatientVisits,
-    createVisit,
-    getPatientAudit
+    patients, queue, selectedPatient, setSelectedPatient, loading,
+    loadDashboardData, loadPatient, updatePatient, getPatientVisits, createVisit, getPatientAudit
   } = useClinic();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [dbListOpen, setDbListOpen] = useState(true);
   const [editMode, setEditMode] = useState(false);
-  const [activeTab, setActiveTab] = useState('patient');
   
   // Modals
   const [visitModalOpen, setVisitModalOpen] = useState(false);
   const [auditModalOpen, setAuditModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [adminModalOpen, setAdminModalOpen] = useState(false);
+  const [pdfModalOpen, setPdfModalOpen] = useState(false);
   
-  // Visit history & audit
+  // Data
   const [visits, setVisits] = useState([]);
   const [auditLogs, setAuditLogs] = useState([]);
-  
-  // Edit form
   const [editForm, setEditForm] = useState({});
-  
-  // Visit form
   const [visitForm, setVisitForm] = useState({ treatment: '', notes: '', consultant: '' });
   
-  // Delete form
+  // Password verification
   const [deletePassword, setDeletePassword] = useState('');
   const [deleteConsent, setDeleteConsent] = useState(false);
+  const [pdfPassword, setPdfPassword] = useState('');
+  const [pdfLoading, setPdfLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
-  // Admin Panel State
+  // Admin/Manager Panel State
   const [adminUsers, setAdminUsers] = useState([]);
   const [loginAudit, setLoginAudit] = useState([]);
   const [systemAudit, setSystemAudit] = useState([]);
   const [newUserForm, setNewUserForm] = useState({ username: '', password: '', role: 'STAFF' });
-  const [resetPassForm, setResetPassForm] = useState({ username: '', newPassword: '' });
   const [adminLoading, setAdminLoading] = useState(false);
 
-  // PDF Export
-  const [pdfLoading, setPdfLoading] = useState(false);
-
-  // Filter patients by search
   const filteredPatients = patients.filter(p => {
     const term = searchTerm.toLowerCase();
-    return p.name?.toLowerCase().includes(term) || 
-           p.patient_id?.toLowerCase().includes(term) ||
-           p.dob?.includes(term);
+    return p.name?.toLowerCase().includes(term) || p.patient_id?.toLowerCase().includes(term) || p.dob?.includes(term);
   });
 
   const filteredQueue = queue.filter(p => {
     const term = searchTerm.toLowerCase();
-    return p.name?.toLowerCase().includes(term) || 
-           p.patient_id?.toLowerCase().includes(term);
+    return p.name?.toLowerCase().includes(term) || p.patient_id?.toLowerCase().includes(term);
   });
 
-  // Select patient
   const handleSelectPatient = async (patient) => {
     setSelectedPatient(patient);
     setSidebarOpen(false);
     setEditMode(false);
-    setActiveTab('patient');
-    
     const patientVisits = await getPatientVisits(patient.patient_id);
     setVisits(patientVisits);
-    
     setEditForm({
-      phone: patient.phone || '',
-      email: patient.email || '',
-      street: patient.street || '',
-      city: patient.city || '',
-      postcode: patient.postcode || '',
-      emergency_name: patient.emergency_name || '',
-      emergency_phone: patient.emergency_phone || '',
-      medications: patient.medications || '',
-      allergies: patient.allergies || '',
-      conditions: patient.conditions || '',
-      surgeries: patient.surgeries || '',
-      procedures: patient.procedures || ''
+      phone: patient.phone || '', email: patient.email || '', street: patient.street || '',
+      city: patient.city || '', postcode: patient.postcode || '',
+      emergency_name: patient.emergency_name || '', emergency_phone: patient.emergency_phone || '',
+      medications: patient.medications || '', allergies: patient.allergies || '',
+      conditions: patient.conditions || '', surgeries: patient.surgeries || '', procedures: patient.procedures || ''
     });
   };
 
-  // Save patient edits
   const handleSavePatient = async () => {
     const result = await updatePatient(selectedPatient.patient_id, editForm);
     if (result.success) {
       setEditMode(false);
       const updated = await loadPatient(selectedPatient.patient_id);
-      if (updated) {
-        setSelectedPatient({ ...selectedPatient, ...updated });
-      }
+      if (updated) setSelectedPatient({ ...selectedPatient, ...updated });
     }
   };
 
-  // Visit modal
   const handleOpenVisitModal = () => {
     setVisitForm({
       treatment: '',
@@ -187,53 +119,59 @@ const StaffPortal = () => {
     }
   };
 
-  // Audit logs
   const handleShowAudit = async () => {
     const logs = await getPatientAudit(selectedPatient.patient_id);
     setAuditLogs(logs);
     setAuditModalOpen(true);
   };
 
-  // Delete patient
-  const handleDeletePatient = async () => {
-    const result = await deletePatient(selectedPatient.patient_id, deletePassword);
-    if (result.success) {
-      setDeleteModalOpen(false);
-      setSelectedPatient(null);
-      setDeletePassword('');
-      setDeleteConsent(false);
-    }
-  };
-
-  // PDF Export
+  // PDF Export with password
   const handleExportPDF = async () => {
-    if (!selectedPatient) return;
+    if (!pdfPassword) return;
     setPdfLoading(true);
     try {
-      const response = await api().get(`/patients/${selectedPatient.patient_id}/pdf`);
+      const response = await api().post(`/patients/${selectedPatient.patient_id}/pdf`, { password: pdfPassword });
       if (response.data.success) {
         const printWindow = window.open('', '_blank');
         printWindow.document.write(response.data.html);
         printWindow.document.close();
-        printWindow.onload = () => {
-          printWindow.print();
-        };
+        printWindow.onload = () => printWindow.print();
+        setPdfModalOpen(false);
+        setPdfPassword('');
       }
     } catch (error) {
-      console.error('PDF export failed:', error);
+      alert(error.response?.data?.detail || 'Export failed - check password');
     } finally {
       setPdfLoading(false);
     }
   };
 
-  // Admin Panel Functions
+  // Delete with password
+  const handleDeletePatient = async () => {
+    if (!deletePassword || !deleteConsent) return;
+    setDeleteLoading(true);
+    try {
+      await api().post(`/patients/${selectedPatient.patient_id}/delete`, { password: deletePassword });
+      setDeleteModalOpen(false);
+      setSelectedPatient(null);
+      setDeletePassword('');
+      setDeleteConsent(false);
+      loadDashboardData();
+    } catch (error) {
+      alert(error.response?.data?.detail || 'Delete failed - check password');
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
+  // Admin/Manager Panel Functions
   const loadAdminData = async () => {
     setAdminLoading(true);
     try {
       const [usersRes, loginRes, systemRes] = await Promise.all([
         api().get('/admin/users'),
-        api().get('/admin/login-audit', { params: { limit: 200 } }),
-        api().get('/admin/system-audit', { params: { limit: 200 } })
+        api().get('/admin/login-audit', { params: { limit: 300 } }),
+        api().get('/admin/system-audit', { params: { limit: 500 } })
       ]);
       setAdminUsers(usersRes.data || []);
       setLoginAudit(loginRes.data?.rows || []);
@@ -282,41 +220,37 @@ const StaffPortal = () => {
   };
 
   const handleClearLoginAudit = async () => {
-    if (!window.confirm('Clear all login audit logs?')) return;
+    if (!window.confirm('Clear all login audit logs? (Admin only)')) return;
     try {
       await api().delete('/admin/login-audit');
       loadAdminData();
     } catch (error) {
-      alert('Failed to clear logs');
+      alert(error.response?.data?.detail || 'Failed - Admin only');
     }
   };
 
   const handleClearSystemAudit = async () => {
-    if (!window.confirm('Clear all system audit logs?')) return;
+    if (!window.confirm('Clear all system audit logs? (Admin only)')) return;
     try {
       await api().delete('/admin/system-audit');
       loadAdminData();
     } catch (error) {
-      alert('Failed to clear logs');
+      alert(error.response?.data?.detail || 'Failed - Admin only');
     }
   };
 
-  // Go home without logout
-  const goToHome = () => {
-    navigate('/');
-  };
+  const goToHome = () => navigate('/');
+
+  // Determine available roles for new user creation
+  const availableRoles = isAdmin ? ['STAFF', 'MANAGER', 'ADMIN'] : ['STAFF', 'MANAGER'];
 
   return (
     <div data-testid="staff-portal" className="h-screen flex flex-col md:flex-row relative bg-slate-950">
       {/* Mobile Header */}
       <div className="md:hidden bg-slate-900 border-b border-slate-800 p-4 flex justify-between items-center z-50 shrink-0 h-14">
-        <div className="font-bold text-lg text-white">
-          Just Vitality <span className="text-blue-500">Clinic</span>
-        </div>
+        <div className="font-bold text-lg text-white">Just Vitality <span className="text-blue-500">Clinic</span></div>
         <div className="flex items-center gap-4">
-          <button onClick={goToHome} className="text-slate-400 hover:text-white">
-            <Home className="w-5 h-5" />
-          </button>
+          <button onClick={goToHome} className="text-slate-400 hover:text-white"><Home className="w-5 h-5" /></button>
           <button onClick={() => setSidebarOpen(!sidebarOpen)} className="text-white p-2 border border-slate-700 rounded">
             {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
@@ -325,55 +259,42 @@ const StaffPortal = () => {
 
       {/* Sidebar */}
       <aside className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 fixed md:relative top-14 md:top-0 bottom-0 left-0 w-full md:w-[340px] bg-slate-900 border-r border-slate-800 flex flex-col z-40 transition-transform duration-300`}>
-        {/* User Info */}
         <div className="p-4 border-b border-slate-800">
           <div className="hidden md:flex justify-between items-center mb-2">
             <div className="flex flex-col">
               <span className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Logged In As</span>
               <div className="flex items-center gap-2">
                 <span className="font-bold text-lg text-blue-500">{user?.username}</span>
-                <Badge variant="outline" className="text-[10px]">{user?.role}</Badge>
+                <Badge variant="outline" className={`text-[10px] ${user?.role === 'ADMIN' ? 'border-violet-500 text-violet-400' : user?.role === 'MANAGER' ? 'border-emerald-500 text-emerald-400' : ''}`}>
+                  {user?.role}
+                </Badge>
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <button onClick={goToHome} className="p-2 rounded-full hover:bg-slate-800 text-slate-400 hover:text-white" title="Home (stay logged in)">
-                <Home className="w-5 h-5" />
-              </button>
+              <button onClick={goToHome} className="p-2 rounded-full hover:bg-slate-800 text-slate-400 hover:text-white" title="Home"><Home className="w-5 h-5" /></button>
               {(isAdmin || isManager) && (
-                <button onClick={handleOpenAdminModal} className="p-2 rounded-full hover:bg-slate-800 text-slate-400 hover:text-violet-400" title="Admin Panel">
-                  <Settings className="w-5 h-5" />
+                <button onClick={handleOpenAdminModal} className="p-2 rounded-full hover:bg-slate-800 text-slate-400 hover:text-violet-400" title={isAdmin ? "Admin Panel" : "Manager Panel"}>
+                  {isAdmin ? <Shield className="w-5 h-5" /> : <Crown className="w-5 h-5" />}
                 </button>
               )}
-              <button onClick={logout} className="p-2 rounded-full hover:bg-slate-800 text-red-400 hover:text-red-300" title="Logout">
-                <LogOut className="w-5 h-5" />
-              </button>
+              <button onClick={logout} className="p-2 rounded-full hover:bg-slate-800 text-red-400" title="Logout"><LogOut className="w-5 h-5" /></button>
             </div>
           </div>
 
-          {/* Mobile user info */}
           <div className="md:hidden mb-4 p-2 bg-slate-800/50 rounded">
             <div className="flex justify-between items-center">
-              <span className="text-xs text-slate-400">User: <span className="text-white font-bold">{user?.username}</span></span>
+              <span className="text-xs text-slate-400">User: <span className="text-white font-bold">{user?.username}</span> ({user?.role})</span>
               <div className="flex gap-2">
-                {(isAdmin || isManager) && (
-                  <button onClick={handleOpenAdminModal} className="text-xs text-violet-400">Admin</button>
-                )}
+                {(isAdmin || isManager) && <button onClick={handleOpenAdminModal} className="text-xs text-violet-400">{isAdmin ? 'Admin' : 'Manager'}</button>}
                 <button onClick={logout} className="text-xs text-red-400">Sign Out</button>
               </div>
             </div>
           </div>
 
-          {/* Search */}
           <div className="flex gap-2">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-              <Input
-                data-testid="staff-search"
-                placeholder="Search patients..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9 bg-slate-950 border-slate-800 h-10"
-              />
+              <Input placeholder="Search patients..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-9 bg-slate-950 border-slate-800 h-10" />
             </div>
             <Button variant="outline" size="icon" onClick={loadDashboardData} disabled={loading} className="border-slate-800">
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
@@ -391,11 +312,8 @@ const StaffPortal = () => {
             <div className="p-4 text-center text-slate-500 text-sm">No patients waiting</div>
           ) : (
             filteredQueue.map(p => (
-              <div
-                key={p.patient_id}
-                onClick={() => handleSelectPatient(p)}
-                className={`p-3 border-b border-slate-800 hover:bg-blue-500/10 cursor-pointer flex justify-between items-center ${selectedPatient?.patient_id === p.patient_id ? 'bg-blue-500/20' : ''}`}
-              >
+              <div key={p.patient_id} onClick={() => handleSelectPatient(p)}
+                className={`p-3 border-b border-slate-800 hover:bg-blue-500/10 cursor-pointer flex justify-between items-center ${selectedPatient?.patient_id === p.patient_id ? 'bg-blue-500/20' : ''}`}>
                 <div>
                   <div className="font-bold text-sm uppercase text-white">{p.name}</div>
                   <div className="text-xs text-blue-500 truncate max-w-[200px]">{p.queue_reason}</div>
@@ -417,11 +335,8 @@ const StaffPortal = () => {
         {dbListOpen && (
           <ScrollArea className="flex-1">
             {filteredPatients.map(p => (
-              <div
-                key={p.patient_id}
-                onClick={() => handleSelectPatient(p)}
-                className={`p-3 border-b border-slate-800 hover:bg-slate-800/50 cursor-pointer flex justify-between items-center ${selectedPatient?.patient_id === p.patient_id ? 'bg-blue-500/20' : ''}`}
-              >
+              <div key={p.patient_id} onClick={() => handleSelectPatient(p)}
+                className={`p-3 border-b border-slate-800 hover:bg-slate-800/50 cursor-pointer flex justify-between items-center ${selectedPatient?.patient_id === p.patient_id ? 'bg-blue-500/20' : ''}`}>
                 <div>
                   <div className="font-bold text-sm uppercase text-slate-200">{p.name}</div>
                   <div className="text-xs text-slate-500">{p.dob}</div>
@@ -433,9 +348,7 @@ const StaffPortal = () => {
         )}
 
         <div className="p-4 border-t border-slate-800 mt-auto">
-          <div className="text-[10px] text-slate-600 text-center">
-            System by <a href="mailto:dyczkowski.kamil@gmail.com" className="text-blue-500">Kamil Dyczkowski</a> 2026
-          </div>
+          <div className="text-[10px] text-slate-600 text-center">System by <a href="mailto:dyczkowski.kamil@gmail.com" className="text-blue-500">Kamil Dyczkowski</a> 2026</div>
         </div>
       </aside>
 
@@ -447,7 +360,7 @@ const StaffPortal = () => {
             <p>Select a patient from the sidebar</p>
           </div>
         ) : (
-          <div data-testid="patient-dashboard" className="flex-1 flex flex-col h-full overflow-hidden">
+          <div className="flex-1 flex flex-col h-full overflow-hidden">
             {/* Patient Header */}
             <div className="p-4 md:p-6 border-b border-slate-800 flex flex-col md:flex-row justify-between items-start gap-4 bg-slate-900/50 shrink-0">
               <div>
@@ -455,22 +368,15 @@ const StaffPortal = () => {
                 <p className="text-xs text-slate-500 font-mono">ID: {selectedPatient.patient_id}</p>
               </div>
               <div className="flex flex-wrap gap-2">
-                <Button onClick={() => navigate('/kiosk')} className="bg-emerald-600 hover:bg-emerald-700">
-                  <Plus className="w-4 h-4 mr-2" /> New Patient
-                </Button>
-                <Button variant="outline" onClick={handleShowAudit} className="border-slate-700">
-                  <History className="w-4 h-4 mr-2" /> Change Log
-                </Button>
-                <Button variant="outline" onClick={handleExportPDF} disabled={pdfLoading} className="border-slate-700">
-                  {pdfLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Download className="w-4 h-4 mr-2" />}
-                  Export PDF
-                </Button>
+                <Button onClick={() => navigate('/kiosk')} className="bg-emerald-600 hover:bg-emerald-700"><Plus className="w-4 h-4 mr-2" /> New Patient</Button>
+                <Button variant="outline" onClick={handleShowAudit} className="border-slate-700"><History className="w-4 h-4 mr-2" /> Change Log</Button>
+                {(isAdmin || isManager) && (
+                  <Button variant="outline" onClick={() => setPdfModalOpen(true)} className="border-slate-700"><Download className="w-4 h-4 mr-2" /> Export PDF</Button>
+                )}
                 <Button variant={editMode ? "default" : "outline"} onClick={() => setEditMode(!editMode)} className={editMode ? "bg-emerald-600" : "border-slate-700"}>
                   <Edit className="w-4 h-4 mr-2" /> {editMode ? 'Editing...' : 'Edit Profile'}
                 </Button>
-                <Button onClick={handleOpenVisitModal} className="bg-blue-600 hover:bg-blue-700">
-                  <Plus className="w-4 h-4 mr-2" /> New Visit
-                </Button>
+                <Button onClick={handleOpenVisitModal} className="bg-blue-600 hover:bg-blue-700"><Plus className="w-4 h-4 mr-2" /> New Visit</Button>
               </div>
             </div>
 
@@ -482,7 +388,6 @@ const StaffPortal = () => {
                   <h3 className="text-xs text-blue-500 font-bold uppercase mb-1">Reason</h3>
                   <p className="text-sm italic text-slate-300">{selectedPatient.queue_reason || selectedPatient.reason || 'No active visit.'}</p>
                 </div>
-
                 <div className={`glass-panel p-4 rounded-xl flex items-center justify-between ${selectedPatient.alerts ? 'border border-red-500 bg-red-500/10' : ''}`}>
                   <div>
                     <h3 className="text-xs font-bold uppercase text-slate-400">Alerts (Today)</h3>
@@ -490,7 +395,6 @@ const StaffPortal = () => {
                   </div>
                   <AlertTriangle className={`w-6 h-6 ${selectedPatient.alerts ? 'text-red-500' : 'text-slate-700'}`} />
                 </div>
-
                 <div className="glass-panel p-4 rounded-xl border-l-4 border-red-500">
                   <h3 className="text-xs text-red-500 font-bold uppercase mb-1">Allergies</h3>
                   {editMode ? (
@@ -506,43 +410,26 @@ const StaffPortal = () => {
                 <div className="flex flex-col gap-4">
                   <div className="glass-panel p-4 rounded-xl flex-1">
                     <label className="text-xs text-slate-400 font-bold uppercase mb-1 block"><Pill className="w-3 h-3 inline mr-1" /> Medications</label>
-                    {editMode ? (
-                      <Textarea value={editForm.medications} onChange={(e) => setEditForm(prev => ({ ...prev, medications: e.target.value }))} className="bg-slate-950 border-slate-800 h-24" />
-                    ) : (
-                      <p className="text-sm text-slate-300">{selectedPatient.medications || '-'}</p>
-                    )}
+                    {editMode ? <Textarea value={editForm.medications} onChange={(e) => setEditForm(prev => ({ ...prev, medications: e.target.value }))} className="bg-slate-950 border-slate-800 h-24" />
+                      : <p className="text-sm text-slate-300">{selectedPatient.medications || '-'}</p>}
                   </div>
                   <div className="glass-panel p-4 rounded-xl flex-1">
                     <label className="text-xs text-slate-400 font-bold uppercase mb-1 block">Surgeries</label>
-                    {editMode ? (
-                      <Textarea value={editForm.surgeries} onChange={(e) => setEditForm(prev => ({ ...prev, surgeries: e.target.value }))} className="bg-slate-950 border-slate-800 h-24" />
-                    ) : (
-                      <p className="text-sm text-slate-300">{selectedPatient.surgeries || '-'}</p>
-                    )}
+                    {editMode ? <Textarea value={editForm.surgeries} onChange={(e) => setEditForm(prev => ({ ...prev, surgeries: e.target.value }))} className="bg-slate-950 border-slate-800 h-24" />
+                      : <p className="text-sm text-slate-300">{selectedPatient.surgeries || '-'}</p>}
                   </div>
                 </div>
-
                 <div className="flex flex-col gap-4">
                   <div className="glass-panel p-4 rounded-xl flex-1">
                     <label className="text-xs text-slate-400 font-bold uppercase mb-1 block"><Heart className="w-3 h-3 inline mr-1" /> Conditions</label>
-                    {editMode ? (
-                      <Textarea value={editForm.conditions} onChange={(e) => setEditForm(prev => ({ ...prev, conditions: e.target.value }))} className="bg-slate-950 border-slate-800 h-24" />
-                    ) : (
-                      <p className="text-sm text-slate-300">{selectedPatient.conditions || '-'}</p>
-                    )}
+                    {editMode ? <Textarea value={editForm.conditions} onChange={(e) => setEditForm(prev => ({ ...prev, conditions: e.target.value }))} className="bg-slate-950 border-slate-800 h-24" />
+                      : <p className="text-sm text-slate-300">{selectedPatient.conditions || '-'}</p>}
                   </div>
                   <div className="glass-panel p-4 rounded-xl flex-1">
                     <label className="text-xs text-yellow-500 font-bold uppercase mb-1 block">IV History / Notes</label>
-                    <Textarea
-                      value={editForm.procedures}
-                      onChange={(e) => setEditForm(prev => ({ ...prev, procedures: e.target.value }))}
-                      onBlur={handleSavePatient}
-                      placeholder="Type notes here (Auto-saved)..."
-                      className="bg-slate-950 border-slate-800 h-24 focus:border-yellow-500"
-                    />
+                    <Textarea value={editForm.procedures} onChange={(e) => setEditForm(prev => ({ ...prev, procedures: e.target.value }))} onBlur={handleSavePatient} placeholder="Type notes here..." className="bg-slate-950 border-slate-800 h-24 focus:border-yellow-500" />
                   </div>
                 </div>
-
                 {/* Contact Details */}
                 <div className="glass-panel p-4 rounded-xl">
                   <h3 className="text-xs text-slate-400 font-bold uppercase mb-3">Contact Details</h3>
@@ -552,7 +439,6 @@ const StaffPortal = () => {
                     <p className="flex items-center gap-2 text-slate-300"><MapPin className="w-4 h-4 text-slate-500" /> {[selectedPatient.street, selectedPatient.city, selectedPatient.postcode].filter(Boolean).join(', ') || '-'}</p>
                     <p className="flex items-center gap-2 text-red-400"><AlertTriangle className="w-4 h-4" /> {selectedPatient.emergency_name} {selectedPatient.emergency_phone}</p>
                   </div>
-
                   {editMode && (
                     <div className="mt-4 pt-4 border-t border-slate-800 space-y-2">
                       <Input placeholder="Phone" value={editForm.phone} onChange={(e) => setEditForm(prev => ({ ...prev, phone: e.target.value }))} className="bg-slate-950 border-slate-800" />
@@ -568,14 +454,11 @@ const StaffPortal = () => {
                         <Input placeholder="Phone" value={editForm.emergency_phone} onChange={(e) => setEditForm(prev => ({ ...prev, emergency_phone: e.target.value }))} className="bg-slate-950 border-slate-800" />
                       </div>
                       <Button onClick={handleSavePatient} className="w-full mt-3 bg-emerald-600 hover:bg-emerald-700">Save Changes</Button>
-
                       {isManager && (
                         <div className="mt-6 pt-4 border-t border-slate-700">
                           <div className="p-4 border border-red-500/30 rounded-lg bg-red-900/10">
-                            <h3 className="text-xs text-red-400 font-bold uppercase mb-2 flex items-center gap-2"><Shield className="w-4 h-4" /> Manager Zone</h3>
-                            <Button variant="destructive" onClick={() => setDeleteModalOpen(true)} className="w-full">
-                              <Trash2 className="w-4 h-4 mr-2" /> Delete Record
-                            </Button>
+                            <h3 className="text-xs text-red-400 font-bold uppercase mb-2 flex items-center gap-2"><Shield className="w-4 h-4" /> {isAdmin ? 'Admin' : 'Manager'} Zone</h3>
+                            <Button variant="destructive" onClick={() => setDeleteModalOpen(true)} className="w-full"><Trash2 className="w-4 h-4 mr-2" /> Delete Record</Button>
                           </div>
                         </div>
                       )}
@@ -589,26 +472,19 @@ const StaffPortal = () => {
               <div className="glass-panel rounded-xl overflow-hidden mb-10">
                 <table className="w-full text-left text-sm">
                   <thead className="bg-slate-800/50 text-xs uppercase text-slate-400">
-                    <tr>
-                      <th className="p-3">Date</th>
-                      <th className="p-3">Treatment</th>
-                      <th className="p-3">Notes</th>
-                      <th className="p-3">Consultant</th>
-                    </tr>
+                    <tr><th className="p-3">Date</th><th className="p-3">Treatment</th><th className="p-3">Notes</th><th className="p-3">Consultant</th></tr>
                   </thead>
                   <tbody>
                     {visits.length === 0 ? (
                       <tr><td colSpan={4} className="p-4 text-center text-slate-500">No history</td></tr>
-                    ) : (
-                      visits.map((v, i) => (
-                        <tr key={v.visit_id || i} className="border-b border-slate-800 hover:bg-slate-800/30">
-                          <td className="p-3 text-slate-400">{v.date?.slice(0, 10)}</td>
-                          <td className="p-3 font-bold text-slate-200">{v.treatment}</td>
-                          <td className="p-3 text-slate-400">{v.notes}</td>
-                          <td className="p-3 text-slate-400">{v.consultant}</td>
-                        </tr>
-                      ))
-                    )}
+                    ) : visits.map((v, i) => (
+                      <tr key={v.visit_id || i} className="border-b border-slate-800 hover:bg-slate-800/30">
+                        <td className="p-3 text-slate-400">{v.date?.slice(0, 10)}</td>
+                        <td className="p-3 font-bold text-slate-200">{v.treatment}</td>
+                        <td className="p-3 text-slate-400">{v.notes}</td>
+                        <td className="p-3 text-slate-400">{v.consultant}</td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               </div>
@@ -622,18 +498,12 @@ const StaffPortal = () => {
         <DialogContent className="bg-slate-900 border-slate-800">
           <DialogHeader><DialogTitle>New Consultation</DialogTitle></DialogHeader>
           <div className="space-y-4">
-            <div>
-              <label className="text-xs text-slate-400 uppercase">Treatment</label>
-              <Input value={visitForm.treatment} onChange={(e) => setVisitForm(prev => ({ ...prev, treatment: e.target.value }))} placeholder="e.g., IV Vitamin Infusion" className="bg-slate-950 border-slate-800 mt-1" />
-            </div>
-            <div>
-              <label className="text-xs text-slate-400 uppercase">Notes</label>
-              <Textarea value={visitForm.notes} onChange={(e) => setVisitForm(prev => ({ ...prev, notes: e.target.value }))} className="bg-slate-950 border-slate-800 mt-1 h-24" />
-            </div>
-            <div>
-              <label className="text-xs text-slate-400 uppercase">Consultant</label>
-              <Input value={visitForm.consultant} readOnly className="bg-slate-950 border-slate-800 mt-1 text-slate-500" />
-            </div>
+            <div><label className="text-xs text-slate-400 uppercase">Treatment</label>
+              <Input value={visitForm.treatment} onChange={(e) => setVisitForm(prev => ({ ...prev, treatment: e.target.value }))} placeholder="e.g., IV Vitamin Infusion" className="bg-slate-950 border-slate-800 mt-1" /></div>
+            <div><label className="text-xs text-slate-400 uppercase">Notes</label>
+              <Textarea value={visitForm.notes} onChange={(e) => setVisitForm(prev => ({ ...prev, notes: e.target.value }))} className="bg-slate-950 border-slate-800 mt-1 h-24" /></div>
+            <div><label className="text-xs text-slate-400 uppercase">Consultant</label>
+              <Input value={visitForm.consultant} readOnly className="bg-slate-950 border-slate-800 mt-1 text-slate-500" /></div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setVisitModalOpen(false)}>Cancel</Button>
@@ -648,27 +518,39 @@ const StaffPortal = () => {
           <DialogHeader><DialogTitle>Change Log - {selectedPatient?.name}</DialogTitle></DialogHeader>
           <ScrollArea className="max-h-[400px]">
             <table className="w-full text-xs">
-              <thead className="bg-slate-800/50 text-slate-400 uppercase">
-                <tr><th className="p-2 text-left">Date</th><th className="p-2 text-left">Field</th><th className="p-2 text-left">Old Value</th><th className="p-2 text-left">New Value</th><th className="p-2 text-left">User</th></tr>
-              </thead>
+              <thead className="bg-slate-800/50 text-slate-400 uppercase"><tr><th className="p-2 text-left">Date</th><th className="p-2 text-left">Field</th><th className="p-2 text-left">Old</th><th className="p-2 text-left">New</th><th className="p-2 text-left">User</th></tr></thead>
               <tbody>
-                {auditLogs.length === 0 ? (
-                  <tr><td colSpan={5} className="p-4 text-center text-slate-500">No changes recorded</td></tr>
-                ) : (
-                  auditLogs.map((log, i) => (
+                {auditLogs.length === 0 ? <tr><td colSpan={5} className="p-4 text-center text-slate-500">No changes</td></tr>
+                  : auditLogs.map((log, i) => (
                     <tr key={i} className="border-b border-slate-800">
-                      <td className="p-2 text-slate-400">{log.timestamp?.slice(0, 16)}</td>
+                      <td className="p-2 text-slate-500">{log.timestamp?.slice(0, 16)}</td>
                       <td className="p-2 font-bold text-slate-200">{log.field}</td>
                       <td className="p-2 text-red-400">{log.old_value}</td>
                       <td className="p-2 text-emerald-400">{log.new_value}</td>
                       <td className="p-2 text-slate-400">{log.user}</td>
                     </tr>
-                  ))
-                )}
+                  ))}
               </tbody>
             </table>
           </ScrollArea>
           <DialogFooter><Button variant="outline" onClick={() => setAuditModalOpen(false)}>Close</Button></DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* PDF Export Modal - requires password */}
+      <Dialog open={pdfModalOpen} onOpenChange={setPdfModalOpen}>
+        <DialogContent className="bg-slate-900 border-slate-800">
+          <DialogHeader><DialogTitle>Export Patient PDF</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            <p className="text-slate-400 text-sm">Enter your password to export patient record for <strong className="text-white">{selectedPatient?.name}</strong></p>
+            <Input type="password" placeholder="Your password" value={pdfPassword} onChange={(e) => setPdfPassword(e.target.value)} className="bg-slate-950 border-slate-800" />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setPdfModalOpen(false); setPdfPassword(''); }}>Cancel</Button>
+            <Button onClick={handleExportPDF} disabled={!pdfPassword || pdfLoading} className="bg-blue-600 hover:bg-blue-700">
+              {pdfLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Download className="w-4 h-4 mr-2" />} Export
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
@@ -677,28 +559,30 @@ const StaffPortal = () => {
         <DialogContent className="bg-slate-900 border-slate-800">
           <DialogHeader><DialogTitle className="text-red-500">Delete Patient Record</DialogTitle></DialogHeader>
           <div className="space-y-4">
-            <p className="text-slate-400 text-sm">This will permanently delete <strong className="text-white">{selectedPatient?.name}</strong> and all their visit history.</p>
+            <p className="text-slate-400 text-sm">Permanently delete <strong className="text-white">{selectedPatient?.name}</strong> and all visit history.</p>
             <div className="flex items-center gap-2">
               <input type="checkbox" checked={deleteConsent} onChange={(e) => setDeleteConsent(e.target.checked)} className="w-4 h-4" />
-              <label className="text-sm text-slate-400">I understand this action is permanent</label>
+              <label className="text-sm text-slate-400">I understand this is permanent</label>
             </div>
-            <div>
-              <label className="text-xs text-slate-400 uppercase">Enter your password to confirm</label>
-              <Input type="password" value={deletePassword} onChange={(e) => setDeletePassword(e.target.value)} className="bg-slate-950 border-slate-800 mt-1" />
-            </div>
+            <Input type="password" placeholder="Your password" value={deletePassword} onChange={(e) => setDeletePassword(e.target.value)} className="bg-slate-950 border-slate-800" />
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteModalOpen(false)}>Cancel</Button>
-            <Button variant="destructive" onClick={handleDeletePatient} disabled={!deleteConsent || !deletePassword}>Delete Record</Button>
+            <Button variant="outline" onClick={() => { setDeleteModalOpen(false); setDeletePassword(''); setDeleteConsent(false); }}>Cancel</Button>
+            <Button variant="destructive" onClick={handleDeletePatient} disabled={!deleteConsent || !deletePassword || deleteLoading}>
+              {deleteLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Trash2 className="w-4 h-4 mr-2" />} Delete
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Admin Panel Modal */}
+      {/* Admin/Manager Panel Modal */}
       <Dialog open={adminModalOpen} onOpenChange={setAdminModalOpen}>
         <DialogContent className="bg-slate-900 border-slate-800 max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2"><Shield className="w-5 h-5 text-violet-500" /> Admin Panel</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              {isAdmin ? <Shield className="w-5 h-5 text-violet-500" /> : <Crown className="w-5 h-5 text-emerald-500" />}
+              {isAdmin ? 'Admin Panel' : 'Manager Panel'}
+            </DialogTitle>
           </DialogHeader>
           
           <Tabs defaultValue="users" className="flex-1 overflow-hidden flex flex-col">
@@ -711,43 +595,39 @@ const StaffPortal = () => {
             <ScrollArea className="flex-1">
               {/* Users Tab */}
               <TabsContent value="users" className="mt-0">
-                {isAdmin && (
-                  <div className="glass-panel p-4 mb-4 rounded-xl">
-                    <h4 className="text-sm font-bold text-slate-300 mb-3">Add New User</h4>
-                    <div className="flex gap-2 flex-wrap">
-                      <Input placeholder="Username" value={newUserForm.username} onChange={(e) => setNewUserForm(prev => ({ ...prev, username: e.target.value }))} className="bg-slate-950 border-slate-800 w-40" />
-                      <Input type="password" placeholder="Password" value={newUserForm.password} onChange={(e) => setNewUserForm(prev => ({ ...prev, password: e.target.value }))} className="bg-slate-950 border-slate-800 w-40" />
-                      <Select value={newUserForm.role} onValueChange={(v) => setNewUserForm(prev => ({ ...prev, role: v }))}>
-                        <SelectTrigger className="w-32 bg-slate-950 border-slate-800"><SelectValue /></SelectTrigger>
-                        <SelectContent className="bg-slate-900 border-slate-800">
-                          <SelectItem value="STAFF">STAFF</SelectItem>
-                          <SelectItem value="MANAGER">MANAGER</SelectItem>
-                          <SelectItem value="ADMIN">ADMIN</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <Button onClick={handleAddUser} className="bg-emerald-600 hover:bg-emerald-700"><UserPlus className="w-4 h-4 mr-2" />Add</Button>
-                    </div>
+                <div className="glass-panel p-4 mb-4 rounded-xl">
+                  <h4 className="text-sm font-bold text-slate-300 mb-3">Add New User</h4>
+                  <div className="flex gap-2 flex-wrap">
+                    <Input placeholder="Username" value={newUserForm.username} onChange={(e) => setNewUserForm(prev => ({ ...prev, username: e.target.value }))} className="bg-slate-950 border-slate-800 w-40" />
+                    <Input type="password" placeholder="Password" value={newUserForm.password} onChange={(e) => setNewUserForm(prev => ({ ...prev, password: e.target.value }))} className="bg-slate-950 border-slate-800 w-40" />
+                    <Select value={newUserForm.role} onValueChange={(v) => setNewUserForm(prev => ({ ...prev, role: v }))}>
+                      <SelectTrigger className="w-32 bg-slate-950 border-slate-800"><SelectValue /></SelectTrigger>
+                      <SelectContent className="bg-slate-900 border-slate-800">
+                        {availableRoles.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                    <Button onClick={handleAddUser} className="bg-emerald-600 hover:bg-emerald-700"><UserPlus className="w-4 h-4 mr-2" />Add</Button>
                   </div>
-                )}
-
+                </div>
                 <table className="w-full text-sm">
-                  <thead className="bg-slate-800/50 text-xs uppercase text-slate-400">
-                    <tr><th className="p-3 text-left">Username</th><th className="p-3 text-left">Role</th><th className="p-3 text-left">Status</th><th className="p-3 text-left">Last Login</th><th className="p-3 text-left">Actions</th></tr>
-                  </thead>
+                  <thead className="bg-slate-800/50 text-xs uppercase text-slate-400"><tr><th className="p-3 text-left">Username</th><th className="p-3 text-left">Role</th><th className="p-3 text-left">Status</th><th className="p-3 text-left">Last Login</th><th className="p-3 text-left">Actions</th></tr></thead>
                   <tbody>
                     {adminUsers.map((u, i) => (
                       <tr key={i} className="border-b border-slate-800">
                         <td className="p-3 font-bold text-slate-200">{u.username}</td>
-                        <td className="p-3"><Badge variant="outline" className={u.role === 'ADMIN' ? 'border-violet-500 text-violet-400' : u.role === 'MANAGER' ? 'border-blue-500 text-blue-400' : 'border-slate-600 text-slate-400'}>{u.role}</Badge></td>
+                        <td className="p-3"><Badge variant="outline" className={u.role === 'ADMIN' ? 'border-violet-500 text-violet-400' : u.role === 'MANAGER' ? 'border-emerald-500 text-emerald-400' : 'border-slate-600 text-slate-400'}>{u.role}</Badge></td>
                         <td className="p-3">{u.active ? <Badge className="bg-emerald-500/20 text-emerald-400">Active</Badge> : <Badge className="bg-red-500/20 text-red-400">Locked</Badge>}</td>
                         <td className="p-3 text-slate-500 text-xs">{u.lastLogin || u.last_login || '-'}</td>
                         <td className="p-3">
-                          <div className="flex gap-2">
-                            <Button size="sm" variant="outline" onClick={() => handleResetPassword(u.username)} className="h-8 px-2"><Key className="w-3 h-3" /></Button>
-                            <Button size="sm" variant="outline" onClick={() => handleToggleUserActive(u.username, u.active)} className={`h-8 px-2 ${u.active ? 'text-red-400' : 'text-emerald-400'}`}>
-                              {u.active ? <Lock className="w-3 h-3" /> : <Unlock className="w-3 h-3" />}
-                            </Button>
-                          </div>
+                          {/* Managers cannot modify admins */}
+                          {(isAdmin || u.role !== 'ADMIN') && (
+                            <div className="flex gap-2">
+                              <Button size="sm" variant="outline" onClick={() => handleResetPassword(u.username)} className="h-8 px-2"><Key className="w-3 h-3" /></Button>
+                              <Button size="sm" variant="outline" onClick={() => handleToggleUserActive(u.username, u.active)} className={`h-8 px-2 ${u.active ? 'text-red-400' : 'text-emerald-400'}`}>
+                                {u.active ? <Lock className="w-3 h-3" /> : <Unlock className="w-3 h-3" />}
+                              </Button>
+                            </div>
+                          )}
                         </td>
                       </tr>
                     ))}
@@ -759,18 +639,16 @@ const StaffPortal = () => {
               <TabsContent value="login-log" className="mt-0">
                 <div className="flex justify-between items-center mb-4">
                   <h4 className="text-sm font-bold text-slate-300">Login Audit Log</h4>
-                  {isAdmin && <Button size="sm" variant="destructive" onClick={handleClearLoginAudit}><Trash2 className="w-3 h-3 mr-2" />Clear</Button>}
+                  {isAdmin && <Button size="sm" variant="destructive" onClick={handleClearLoginAudit}><Trash2 className="w-3 h-3 mr-2" />Clear (Admin)</Button>}
                 </div>
                 <table className="w-full text-xs">
-                  <thead className="bg-slate-800/50 text-slate-400 uppercase">
-                    <tr><th className="p-2 text-left">Timestamp</th><th className="p-2 text-left">User</th><th className="p-2 text-left">Event</th><th className="p-2 text-left">Details</th></tr>
-                  </thead>
+                  <thead className="bg-slate-800/50 text-slate-400 uppercase"><tr><th className="p-2 text-left">Timestamp</th><th className="p-2 text-left">User</th><th className="p-2 text-left">Event</th><th className="p-2 text-left">Details</th></tr></thead>
                   <tbody>
                     {loginAudit.map((log, i) => (
                       <tr key={i} className="border-b border-slate-800">
                         <td className="p-2 text-slate-500">{log.ts || log.timestamp}</td>
                         <td className="p-2 font-bold text-slate-300">{log.username}</td>
-                        <td className="p-2"><Badge className={log.event === 'SUCCESS' ? 'bg-emerald-500/20 text-emerald-400' : log.event === 'FAIL' ? 'bg-red-500/20 text-red-400' : 'bg-slate-500/20 text-slate-400'}>{log.event}</Badge></td>
+                        <td className="p-2"><Badge className={log.event === 'SUCCESS' ? 'bg-emerald-500/20 text-emerald-400' : log.event === 'FAIL' || log.event === 'LOCKED' ? 'bg-red-500/20 text-red-400' : 'bg-slate-500/20 text-slate-400'}>{log.event}</Badge></td>
                         <td className="p-2 text-slate-500">{log.details}</td>
                       </tr>
                     ))}
@@ -778,25 +656,29 @@ const StaffPortal = () => {
                 </table>
               </TabsContent>
 
-              {/* System Audit Tab */}
+              {/* System Audit Tab - ALL OPERATIONS */}
               <TabsContent value="system-log" className="mt-0">
                 <div className="flex justify-between items-center mb-4">
-                  <h4 className="text-sm font-bold text-slate-300">System Audit Log (Patient Data Changes)</h4>
-                  {isAdmin && <Button size="sm" variant="destructive" onClick={handleClearSystemAudit}><Trash2 className="w-3 h-3 mr-2" />Clear</Button>}
+                  <h4 className="text-sm font-bold text-slate-300">System Audit Log (All Operations)</h4>
+                  {isAdmin && <Button size="sm" variant="destructive" onClick={handleClearSystemAudit}><Trash2 className="w-3 h-3 mr-2" />Clear (Admin)</Button>}
                 </div>
                 <table className="w-full text-xs">
-                  <thead className="bg-slate-800/50 text-slate-400 uppercase">
-                    <tr><th className="p-2 text-left">Timestamp</th><th className="p-2 text-left">Patient ID</th><th className="p-2 text-left">Action</th><th className="p-2 text-left">Field</th><th className="p-2 text-left">Old</th><th className="p-2 text-left">New</th><th className="p-2 text-left">User</th></tr>
-                  </thead>
+                  <thead className="bg-slate-800/50 text-slate-400 uppercase"><tr><th className="p-2 text-left">Timestamp</th><th className="p-2 text-left">Patient</th><th className="p-2 text-left">Action</th><th className="p-2 text-left">Field</th><th className="p-2 text-left">Old</th><th className="p-2 text-left">New</th><th className="p-2 text-left">User</th></tr></thead>
                   <tbody>
                     {systemAudit.map((log, i) => (
                       <tr key={i} className="border-b border-slate-800">
                         <td className="p-2 text-slate-500">{log.timestamp?.slice(0, 16)}</td>
-                        <td className="p-2 font-mono text-slate-400 text-[10px]">{log.patient_id}</td>
-                        <td className="p-2"><Badge className="bg-blue-500/20 text-blue-400">{log.action}</Badge></td>
+                        <td className="p-2 font-mono text-slate-400 text-[10px] max-w-[120px] truncate">{log.patient_id}</td>
+                        <td className="p-2"><Badge className={
+                          log.action === 'KIOSK_REGISTER' ? 'bg-emerald-500/20 text-emerald-400' :
+                          log.action === 'NEW_VISIT' ? 'bg-blue-500/20 text-blue-400' :
+                          log.action === 'DELETE' ? 'bg-red-500/20 text-red-400' :
+                          log.action === 'UPDATE' ? 'bg-yellow-500/20 text-yellow-400' :
+                          'bg-slate-500/20 text-slate-400'
+                        }>{log.action}</Badge></td>
                         <td className="p-2 font-bold text-slate-300">{log.field}</td>
-                        <td className="p-2 text-red-400 max-w-[100px] truncate">{log.old_value}</td>
-                        <td className="p-2 text-emerald-400 max-w-[100px] truncate">{log.new_value}</td>
+                        <td className="p-2 text-red-400 max-w-[80px] truncate">{log.old_value}</td>
+                        <td className="p-2 text-emerald-400 max-w-[80px] truncate">{log.new_value}</td>
                         <td className="p-2 text-slate-500">{log.user}</td>
                       </tr>
                     ))}
