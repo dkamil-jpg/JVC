@@ -61,6 +61,13 @@ Poprawiony plik `/app/gs_fixed.txt` zawiera:
 - [x] Kiosk with signatures
 - [x] Admin Panel complete
 - [x] PDF exports
+- [x] **Data Management (2026-01-27):**
+  - [x] Usuwanie wszystkich pacjentów (z hasłem)
+  - [x] Usuwanie wszystkich wizyt (z hasłem)
+  - [x] Czyszczenie kolejki (z hasłem)
+  - [x] Tworzenie kopii zapasowych
+  - [x] Przywracanie z kopii zapasowych
+  - [x] Usuwanie kopii zapasowych
 
 ### P1 (Next)
 - [ ] Import danych z Google Sheets
