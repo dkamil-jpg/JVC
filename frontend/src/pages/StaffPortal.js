@@ -202,6 +202,9 @@ const StaffPortal = () => {
         try {
           const backupsRes = await api().get('/admin/backups');
           setBackups(backupsRes.data?.backups || []);
+          // Load kiosk settings
+          const kioskRes = await api().get('/kiosk/settings');
+          setKioskPin(kioskRes.data?.exit_pin || '1234');
         } catch (e) {
           console.error('Failed to load backups:', e);
         }
