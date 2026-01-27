@@ -773,28 +773,41 @@ const StaffPortal = () => {
                   <h4 className="text-sm font-bold text-slate-300">System Audit Log (All Operations)</h4>
                   {isAdmin && <Button size="sm" variant="destructive" onClick={handleClearSystemAudit}><Trash2 className="w-3 h-3 mr-2" />Clear (Admin)</Button>}
                 </div>
-                <table className="w-full text-xs">
-                  <thead className="bg-slate-800/50 text-slate-400 uppercase"><tr><th className="p-2 text-left">Timestamp</th><th className="p-2 text-left">Patient</th><th className="p-2 text-left">Action</th><th className="p-2 text-left">Field</th><th className="p-2 text-left">Old</th><th className="p-2 text-left">New</th><th className="p-2 text-left">User</th></tr></thead>
-                  <tbody>
-                    {systemAudit.map((log, i) => (
-                      <tr key={i} className="border-b border-slate-800">
-                        <td className="p-2 text-slate-500">{log.timestamp?.slice(0, 16)}</td>
-                        <td className="p-2 font-mono text-slate-400 text-[10px] max-w-[120px] truncate">{log.patient_id}</td>
-                        <td className="p-2"><Badge className={
-                          log.action === 'KIOSK_REGISTER' ? 'bg-emerald-500/20 text-emerald-400' :
-                          log.action === 'NEW_VISIT' ? 'bg-blue-500/20 text-blue-400' :
-                          log.action === 'DELETE' ? 'bg-red-500/20 text-red-400' :
-                          log.action === 'UPDATE' ? 'bg-yellow-500/20 text-yellow-400' :
-                          'bg-slate-500/20 text-slate-400'
-                        }>{log.action}</Badge></td>
-                        <td className="p-2 font-bold text-slate-300">{log.field}</td>
-                        <td className="p-2 text-red-400 max-w-[80px] truncate">{log.old_value}</td>
-                        <td className="p-2 text-emerald-400 max-w-[80px] truncate">{log.new_value}</td>
-                        <td className="p-2 text-slate-500">{log.user}</td>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs min-w-[900px]">
+                    <thead className="bg-slate-800/50 text-slate-400 uppercase">
+                      <tr>
+                        <th className="p-2 text-left w-36">Timestamp</th>
+                        <th className="p-2 text-left w-48">Patient</th>
+                        <th className="p-2 text-left w-28">Action</th>
+                        <th className="p-2 text-left w-28">Field</th>
+                        <th className="p-2 text-left w-32">Old Value</th>
+                        <th className="p-2 text-left w-32">New Value</th>
+                        <th className="p-2 text-left w-24">User</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {systemAudit.map((log, i) => (
+                        <tr key={i} className="border-b border-slate-800">
+                          <td className="p-2 text-slate-500 whitespace-nowrap">{log.timestamp?.slice(0, 16)}</td>
+                          <td className="p-2 font-mono text-slate-400 text-[10px]" title={log.patient_id}>{log.patient_id}</td>
+                          <td className="p-2"><Badge className={
+                            log.action === 'KIOSK_REGISTER' ? 'bg-emerald-500/20 text-emerald-400' :
+                            log.action === 'NEW_VISIT' ? 'bg-blue-500/20 text-blue-400' :
+                            log.action === 'DELETE' ? 'bg-red-500/20 text-red-400' :
+                            log.action === 'UPDATE' ? 'bg-yellow-500/20 text-yellow-400' :
+                            log.action === 'CONSENT_SIGNED' ? 'bg-violet-500/20 text-violet-400' :
+                            'bg-slate-500/20 text-slate-400'
+                          }>{log.action}</Badge></td>
+                          <td className="p-2 font-bold text-slate-300">{log.field}</td>
+                          <td className="p-2 text-red-400" title={log.old_value}>{log.old_value?.slice(0, 30)}{log.old_value?.length > 30 ? '...' : ''}</td>
+                          <td className="p-2 text-emerald-400" title={log.new_value}>{log.new_value?.slice(0, 30)}{log.new_value?.length > 30 ? '...' : ''}</td>
+                          <td className="p-2 text-slate-500">{log.user}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </TabsContent>
 
               {/* Data Management Tab - ADMIN ONLY */}
