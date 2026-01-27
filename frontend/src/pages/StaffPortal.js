@@ -18,7 +18,8 @@ import {
   Home, Search, RefreshCw, Menu, X, LogOut, User, Phone, Mail, MapPin,
   AlertTriangle, Pill, Heart, History, Plus, Edit, Trash2, ChevronDown,
   ChevronRight, Loader2, Shield, Users, Settings, Download, Key, UserPlus,
-  ClipboardList, Lock, Unlock, Crown, Database, HardDrive, RotateCcw, Archive
+  ClipboardList, Lock, Unlock, Crown, Database, HardDrive, RotateCcw, Archive,
+  FileSignature
 } from 'lucide-react';
 
 const StaffPortal = () => {
