@@ -61,6 +61,12 @@ const StaffPortal = () => {
   const [newUserForm, setNewUserForm] = useState({ username: '', password: '', role: 'STAFF' });
   const [adminLoading, setAdminLoading] = useState(false);
 
+  // Data Management State (Admin only)
+  const [backups, setBackups] = useState([]);
+  const [dataPassword, setDataPassword] = useState('');
+  const [dataActionLoading, setDataActionLoading] = useState(false);
+  const [dataConfirmAction, setDataConfirmAction] = useState(null); // 'delete-patients' | 'delete-visits' | 'delete-queue' | 'restore-{id}'
+
   const filteredPatients = patients.filter(p => {
     const term = searchTerm.toLowerCase();
     return p.name?.toLowerCase().includes(term) || p.patient_id?.toLowerCase().includes(term) || p.dob?.includes(term);
