@@ -185,6 +185,10 @@ const Kiosk = () => {
     medicalDisclaimer: false
   });
 
+  // Refs for signature canvases
+  const signatureDataRef = useRef(null);
+  const signatureMedicalRef = useRef(null);
+
   const updateField = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     setError('');
