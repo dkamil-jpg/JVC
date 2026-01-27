@@ -134,6 +134,16 @@ const StaffPortal = () => {
     setAuditModalOpen(true);
   };
 
+  const handleShowConsents = async () => {
+    try {
+      const response = await api().get(`/patients/${selectedPatient.patient_id}/consents`);
+      setPatientConsents(response.data?.consents || []);
+      setConsentsModalOpen(true);
+    } catch (error) {
+      alert('Failed to load consents');
+    }
+  };
+
   // PDF Export with password
   const handleExportPDF = async () => {
     if (!pdfPassword) return;
