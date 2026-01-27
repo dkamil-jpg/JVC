@@ -289,10 +289,17 @@ backup_task = None
 
 @app.on_event("startup")
 async def startup():
+    global backup_task
     await init_database()
+    # Start automatic backup scheduler
+    backup_task = asyncio.create_task(scheduled_backup())
+    logger.info("Automatic backup scheduler started")
 
 @app.on_event("shutdown")
 async def shutdown():
+    global backup_task
+    if backup_task:
+        backup_task.cancel()
     client.close()
 
 # ==========================================
