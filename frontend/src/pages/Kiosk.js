@@ -588,6 +588,7 @@ const Kiosk = () => {
                     <SignaturePad 
                       label="Sign to confirm medical disclaimer"
                       onSignatureChange={(signed) => setSignatures(prev => ({ ...prev, medicalDisclaimer: signed }))}
+                      signatureRef={signatureMedicalRef}
                     />
                   </div>
                 )}
