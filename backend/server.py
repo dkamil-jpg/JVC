@@ -225,6 +225,67 @@ async def init_database():
     await db.patients.create_index("patient_id", unique=True)
     await db.visits.create_index("patient_id")
     await db.queue.create_index([("date", 1), ("patient_id", 1)])
+    await db.consents.create_index("patient_id")
+
+# Background task for automatic backups
+async def scheduled_backup():
+    """Run automatic backup at 2:00 AM daily"""
+    while True:
+        now = datetime.now(timezone.utc)
+        # Calculate seconds until next 2:00 AM UTC
+        next_2am = now.replace(hour=2, minute=0, second=0, microsecond=0)
+        if now >= next_2am:
+            next_2am += timedelta(days=1)
+        
+        wait_seconds = (next_2am - now).total_seconds()
+        logger.info(f"Next automatic backup scheduled in {wait_seconds/3600:.1f} hours at {next_2am.isoformat()}")
+        
+        await asyncio.sleep(wait_seconds)
+        
+        # Perform backup
+        try:
+            backup_id = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S_AUTO")
+            
+            patients = await db.patients.find({}, {"_id": 0}).to_list(50000)
+            visits = await db.visits.find({}, {"_id": 0}).to_list(100000)
+            queue = await db.queue.find({}, {"_id": 0}).to_list(10000)
+            users_data = await db.users.find({}, {"_id": 0}).to_list(100)
+            consents_data = await db.consents.find({}, {"_id": 0}).to_list(50000)
+            
+            backup_doc = {
+                "backup_id": backup_id,
+                "created_at": datetime.now(timezone.utc).isoformat(),
+                "created_by": "SYSTEM_AUTO",
+                "data": {
+                    "patients": patients,
+                    "visits": visits,
+                    "queue": queue,
+                    "users": users_data,
+                    "consents": consents_data
+                },
+                "counts": {
+                    "patients": len(patients),
+                    "visits": len(visits),
+                    "queue": len(queue),
+                    "users": len(users_data),
+                    "consents": len(consents_data)
+                }
+            }
+            
+            await db.backups.insert_one(backup_doc)
+            logger.info(f"Automatic backup completed: {backup_id}")
+            
+            # Clean up old automatic backups (keep last 30)
+            auto_backups = await db.backups.find({"created_by": "SYSTEM_AUTO"}).sort("created_at", -1).to_list(100)
+            if len(auto_backups) > 30:
+                for old_backup in auto_backups[30:]:
+                    await db.backups.delete_one({"backup_id": old_backup["backup_id"]})
+                logger.info(f"Cleaned up {len(auto_backups) - 30} old automatic backups")
+                
+        except Exception as e:
+            logger.error(f"Automatic backup failed: {e}")
+
+backup_task = None
 
 @app.on_event("startup")
 async def startup():
