@@ -442,6 +442,172 @@ async def clear_system_audit(user: dict = Depends(verify_admin)):
     return {"success": True}
 
 # ==========================================
+# DATA MANAGEMENT (ADMIN ONLY)
+# ==========================================
+
+@api_router.post("/admin/data/delete-all-patients")
+async def delete_all_patients(data: PasswordVerify, user: dict = Depends(verify_admin)):
+    """Delete ALL patients - requires password verification - ADMIN ONLY"""
+    if not await verify_password_for_user(user["username"], data.password):
+        raise HTTPException(status_code=401, detail="Invalid password")
+    
+    count = await db.patients.count_documents({})
+    await db.patients.delete_many({})
+    await db.queue.delete_many({})
+    
+    await log_system_event("DELETE_ALL_PATIENTS", f"Deleted {count} patients and queue", user["username"])
+    
+    return {"success": True, "deleted_count": count}
+
+@api_router.post("/admin/data/delete-all-visits")
+async def delete_all_visits(data: PasswordVerify, user: dict = Depends(verify_admin)):
+    """Delete ALL visits - requires password verification - ADMIN ONLY"""
+    if not await verify_password_for_user(user["username"], data.password):
+        raise HTTPException(status_code=401, detail="Invalid password")
+    
+    count = await db.visits.count_documents({})
+    await db.visits.delete_many({})
+    
+    await log_system_event("DELETE_ALL_VISITS", f"Deleted {count} visits", user["username"])
+    
+    return {"success": True, "deleted_count": count}
+
+@api_router.post("/admin/data/delete-all-queue")
+async def delete_all_queue(data: PasswordVerify, user: dict = Depends(verify_admin)):
+    """Delete ALL queue entries - requires password verification - ADMIN ONLY"""
+    if not await verify_password_for_user(user["username"], data.password):
+        raise HTTPException(status_code=401, detail="Invalid password")
+    
+    count = await db.queue.count_documents({})
+    await db.queue.delete_many({})
+    
+    await log_system_event("DELETE_ALL_QUEUE", f"Deleted {count} queue entries", user["username"])
+    
+    return {"success": True, "deleted_count": count}
+
+@api_router.post("/admin/backup")
+async def create_backup(data: PasswordVerify, user: dict = Depends(verify_admin)):
+    """Create full backup of all data - ADMIN ONLY"""
+    if not await verify_password_for_user(user["username"], data.password):
+        raise HTTPException(status_code=401, detail="Invalid password")
+    
+    now = datetime.now(timezone.utc)
+    backup_id = now.strftime("%Y%m%d_%H%M%S")
+    
+    # Collect all data
+    patients = await db.patients.find({}, {"_id": 0}).to_list(50000)
+    visits = await db.visits.find({}, {"_id": 0}).to_list(100000)
+    queue = await db.queue.find({}, {"_id": 0}).to_list(10000)
+    users_data = await db.users.find({}, {"_id": 0}).to_list(100)
+    audit_log = await db.audit_log.find({}, {"_id": 0}).to_list(50000)
+    login_audit = await db.login_audit.find({}, {"_id": 0}).to_list(10000)
+    
+    backup_doc = {
+        "backup_id": backup_id,
+        "created_at": now.isoformat(),
+        "created_by": user["username"],
+        "data": {
+            "patients": patients,
+            "visits": visits,
+            "queue": queue,
+            "users": users_data,
+            "audit_log": audit_log,
+            "login_audit": login_audit
+        },
+        "counts": {
+            "patients": len(patients),
+            "visits": len(visits),
+            "queue": len(queue),
+            "users": len(users_data)
+        }
+    }
+    
+    await db.backups.insert_one(backup_doc)
+    
+    await log_system_event("BACKUP_CREATE", f"Backup {backup_id} created", user["username"])
+    
+    return {
+        "success": True,
+        "backup_id": backup_id,
+        "created_at": now.isoformat(),
+        "counts": backup_doc["counts"]
+    }
+
+@api_router.get("/admin/backups")
+async def get_backups(user: dict = Depends(verify_admin)):
+    """List all backups - ADMIN ONLY"""
+    backups = await db.backups.find(
+        {}, 
+        {"_id": 0, "backup_id": 1, "created_at": 1, "created_by": 1, "counts": 1}
+    ).sort("created_at", -1).to_list(100)
+    
+    return {"success": True, "backups": backups}
+
+@api_router.post("/admin/restore/{backup_id}")
+async def restore_backup(backup_id: str, data: PasswordVerify, user: dict = Depends(verify_admin)):
+    """Restore from backup - ADMIN ONLY - requires password"""
+    if not await verify_password_for_user(user["username"], data.password):
+        raise HTTPException(status_code=401, detail="Invalid password")
+    
+    backup = await db.backups.find_one({"backup_id": backup_id})
+    if not backup:
+        raise HTTPException(status_code=404, detail="Backup not found")
+    
+    backup_data = backup.get("data", {})
+    
+    # Clear current data
+    await db.patients.delete_many({})
+    await db.visits.delete_many({})
+    await db.queue.delete_many({})
+    
+    # Restore data
+    patients_restored = 0
+    visits_restored = 0
+    queue_restored = 0
+    
+    if backup_data.get("patients"):
+        await db.patients.insert_many(backup_data["patients"])
+        patients_restored = len(backup_data["patients"])
+    
+    if backup_data.get("visits"):
+        await db.visits.insert_many(backup_data["visits"])
+        visits_restored = len(backup_data["visits"])
+    
+    if backup_data.get("queue"):
+        await db.queue.insert_many(backup_data["queue"])
+        queue_restored = len(backup_data["queue"])
+    
+    await log_system_event(
+        "BACKUP_RESTORE", 
+        f"Restored backup {backup_id}: {patients_restored} patients, {visits_restored} visits", 
+        user["username"]
+    )
+    
+    return {
+        "success": True,
+        "backup_id": backup_id,
+        "restored": {
+            "patients": patients_restored,
+            "visits": visits_restored,
+            "queue": queue_restored
+        }
+    }
+
+@api_router.delete("/admin/backup/{backup_id}")
+async def delete_backup(backup_id: str, data: PasswordVerify, user: dict = Depends(verify_admin)):
+    """Delete a backup - ADMIN ONLY"""
+    if not await verify_password_for_user(user["username"], data.password):
+        raise HTTPException(status_code=401, detail="Invalid password")
+    
+    result = await db.backups.delete_one({"backup_id": backup_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Backup not found")
+    
+    await log_system_event("BACKUP_DELETE", f"Deleted backup {backup_id}", user["username"])
+    
+    return {"success": True}
+
+# ==========================================
 # PATIENT ENDPOINTS
 # ==========================================
 
