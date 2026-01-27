@@ -493,6 +493,7 @@ const StaffPortal = () => {
               <div className="flex flex-wrap gap-2">
                 <Button onClick={() => navigate('/kiosk')} className="bg-emerald-600 hover:bg-emerald-700"><Plus className="w-4 h-4 mr-2" /> New Patient</Button>
                 <Button variant="outline" onClick={handleShowAudit} className="border-slate-700"><History className="w-4 h-4 mr-2" /> Change Log</Button>
+                <Button variant="outline" onClick={handleShowConsents} className="border-slate-700"><FileSignature className="w-4 h-4 mr-2" /> Consents</Button>
                 {(isAdmin || isManager) && (
                   <Button variant="outline" onClick={() => setPdfModalOpen(true)} className="border-slate-700"><Download className="w-4 h-4 mr-2" /> Export PDF</Button>
                 )}
