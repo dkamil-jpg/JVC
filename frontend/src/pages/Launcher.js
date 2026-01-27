@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Stethoscope, UserCheck, BarChart3 } from 'lucide-react';
+import { Stethoscope, UserCheck, BarChart3, Lock } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 const LauncherCard = ({ icon: Icon, title, subtitle, onClick, glowClass, hoverBorder, testId }) => (
