@@ -182,6 +182,16 @@ const StaffPortal = () => {
       setAdminUsers(usersRes.data || []);
       setLoginAudit(loginRes.data?.rows || []);
       setSystemAudit(systemRes.data?.logs || []);
+      
+      // Load backups for admin only
+      if (isAdmin) {
+        try {
+          const backupsRes = await api().get('/admin/backups');
+          setBackups(backupsRes.data?.backups || []);
+        } catch (e) {
+          console.error('Failed to load backups:', e);
+        }
+      }
     } catch (error) {
       console.error('Failed to load admin data:', error);
     } finally {
