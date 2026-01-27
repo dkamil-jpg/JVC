@@ -420,10 +420,26 @@ const Kiosk = () => {
 
   useEffect(() => {
     if (step === 4) {
-      const timer = setTimeout(() => navigate('/'), 5000);
+      const timer = setTimeout(() => {
+        // In kiosk mode, restart the kiosk flow instead of navigating away
+        if (isKioskMode) {
+          setStep(1);
+          setFormData({
+            first_name: '', last_name: '', dob_day: '', dob_month: '', dob_year: '',
+            postcode: '', phone: '', email: '', street: '', city: '',
+            emergency_name: '', emergency_phone: '', reason: '', medications: '',
+            allergies: '', conditions: '', surgeries: '', alerts: []
+          });
+          setConsents({ dataProcessing: false, medicalDisclaimer: false });
+          setSignatures({ dataProcessing: false, medicalDisclaimer: false });
+          setExistingPatient(null);
+        } else {
+          navigate('/');
+        }
+      }, 5000);
       return () => clearTimeout(timer);
     }
-  }, [step, navigate]);
+  }, [step, navigate, isKioskMode]);
 
   const alertOptions = [
     { value: 'Today: Fever/Flu/Inf', label: 'Fever, infection, flu-like symptoms?' },
