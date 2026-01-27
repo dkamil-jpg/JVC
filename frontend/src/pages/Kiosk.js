@@ -564,6 +564,7 @@ const Kiosk = () => {
                     <SignaturePad 
                       label="Sign to confirm data processing consent"
                       onSignatureChange={(signed) => setSignatures(prev => ({ ...prev, dataProcessing: signed }))}
+                      signatureRef={signatureDataRef}
                     />
                   </div>
                 )}
