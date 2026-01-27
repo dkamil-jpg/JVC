@@ -366,6 +366,19 @@ const StaffPortal = () => {
     }
   };
 
+  const handleUpdateKioskPin = async () => {
+    if (!kioskPin || kioskPin.length < 4) {
+      alert('PIN must be at least 4 characters');
+      return;
+    }
+    try {
+      await api().post('/kiosk/settings', { exit_pin: kioskPin });
+      alert('Kiosk PIN updated successfully');
+    } catch (error) {
+      alert(error.response?.data?.detail || 'Failed to update PIN');
+    }
+  };
+
   const goToHome = () => navigate('/');
 
   // Determine available roles for new user creation
