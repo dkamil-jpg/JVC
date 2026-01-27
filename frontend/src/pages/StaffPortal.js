@@ -69,6 +69,7 @@ const StaffPortal = () => {
   const [dataPassword, setDataPassword] = useState('');
   const [dataActionLoading, setDataActionLoading] = useState(false);
   const [dataConfirmAction, setDataConfirmAction] = useState(null); // 'delete-patients' | 'delete-visits' | 'delete-queue' | 'restore-{id}'
+  const [kioskPin, setKioskPin] = useState('1234');
 
   const filteredPatients = patients.filter(p => {
     const term = searchTerm.toLowerCase();
