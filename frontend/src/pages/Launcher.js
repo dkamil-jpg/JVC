@@ -22,6 +22,24 @@ const LauncherCard = ({ icon: Icon, title, subtitle, onClick, glowClass, hoverBo
 
 const Launcher = () => {
   const navigate = useNavigate();
+  const { user, token } = useAuth();
+
+  // If user is logged in, clicking Staff/Reports goes directly (no login needed)
+  const handleStaffClick = () => {
+    if (token && user) {
+      navigate('/staff');
+    } else {
+      navigate('/login?mode=staff');
+    }
+  };
+
+  const handleReportsClick = () => {
+    if (token && user) {
+      navigate('/analytics');
+    } else {
+      navigate('/login?mode=reports');
+    }
+  };
 
   return (
     <div 
