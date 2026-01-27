@@ -149,11 +149,20 @@ const SignaturePad = ({ onSignatureChange, label, signatureRef }) => {
 
 const Kiosk = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const isKioskMode = searchParams.get('mode') === 'locked';
+  
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [existingPatient, setExistingPatient] = useState(null);
   const [showNewPatientConfirm, setShowNewPatientConfirm] = useState(false);
+  
+  // Kiosk mode PIN unlock
+  const [showPinModal, setShowPinModal] = useState(false);
+  const [pinInput, setPinInput] = useState('');
+  const [pinError, setPinError] = useState('');
+  const [isFullscreen, setIsFullscreen] = useState(false);
   
   // Form data
   const [formData, setFormData] = useState({
