@@ -261,12 +261,12 @@ const StaffPortal = () => {
     setDataActionLoading(true);
     try {
       const res = await api().post('/admin/data/delete-all-patients', { password: dataPassword });
-      alert(`Usunięto ${res.data.deleted_count} pacjentów`);
+      alert(`Deleted ${res.data.deleted_count} patients`);
       setDataConfirmAction(null);
       setDataPassword('');
       loadDashboardData();
     } catch (error) {
-      alert(error.response?.data?.detail || 'Błąd - sprawdź hasło');
+      alert(error.response?.data?.detail || 'Error - check password');
     } finally {
       setDataActionLoading(false);
     }
@@ -277,11 +277,11 @@ const StaffPortal = () => {
     setDataActionLoading(true);
     try {
       const res = await api().post('/admin/data/delete-all-visits', { password: dataPassword });
-      alert(`Usunięto ${res.data.deleted_count} wizyt`);
+      alert(`Deleted ${res.data.deleted_count} visits`);
       setDataConfirmAction(null);
       setDataPassword('');
     } catch (error) {
-      alert(error.response?.data?.detail || 'Błąd - sprawdź hasło');
+      alert(error.response?.data?.detail || 'Error - check password');
     } finally {
       setDataActionLoading(false);
     }
@@ -292,12 +292,12 @@ const StaffPortal = () => {
     setDataActionLoading(true);
     try {
       const res = await api().post('/admin/data/delete-all-queue', { password: dataPassword });
-      alert(`Usunięto ${res.data.deleted_count} wpisów z kolejki`);
+      alert(`Deleted ${res.data.deleted_count} queue entries`);
       setDataConfirmAction(null);
       setDataPassword('');
       loadDashboardData();
     } catch (error) {
-      alert(error.response?.data?.detail || 'Błąd - sprawdź hasło');
+      alert(error.response?.data?.detail || 'Error - check password');
     } finally {
       setDataActionLoading(false);
     }
@@ -308,11 +308,11 @@ const StaffPortal = () => {
     setDataActionLoading(true);
     try {
       const res = await api().post('/admin/backup', { password: dataPassword });
-      alert(`Kopia zapasowa utworzona: ${res.data.backup_id}\nPacjenci: ${res.data.counts.patients}, Wizyty: ${res.data.counts.visits}`);
+      alert(`Backup created: ${res.data.backup_id}\nPatients: ${res.data.counts.patients}, Visits: ${res.data.counts.visits}`);
       setDataPassword('');
       loadAdminData();
     } catch (error) {
-      alert(error.response?.data?.detail || 'Błąd - sprawdź hasło');
+      alert(error.response?.data?.detail || 'Error - check password');
     } finally {
       setDataActionLoading(false);
     }
@@ -323,12 +323,12 @@ const StaffPortal = () => {
     setDataActionLoading(true);
     try {
       const res = await api().post(`/admin/restore/${backupId}`, { password: dataPassword });
-      alert(`Przywrócono dane z kopii ${backupId}:\nPacjenci: ${res.data.restored.patients}\nWizyty: ${res.data.restored.visits}`);
+      alert(`Restored from backup ${backupId}:\nPatients: ${res.data.restored.patients}\nVisits: ${res.data.restored.visits}`);
       setDataConfirmAction(null);
       setDataPassword('');
       loadDashboardData();
     } catch (error) {
-      alert(error.response?.data?.detail || 'Błąd - sprawdź hasło');
+      alert(error.response?.data?.detail || 'Error - check password');
     } finally {
       setDataActionLoading(false);
     }
@@ -339,11 +339,11 @@ const StaffPortal = () => {
     setDataActionLoading(true);
     try {
       await api().delete(`/admin/backup/${backupId}`, { data: { password: dataPassword } });
-      alert(`Kopia ${backupId} usunięta`);
+      alert(`Backup ${backupId} deleted`);
       setDataPassword('');
       loadAdminData();
     } catch (error) {
-      alert(error.response?.data?.detail || 'Błąd - sprawdź hasło');
+      alert(error.response?.data?.detail || 'Error - check password');
     } finally {
       setDataActionLoading(false);
     }
