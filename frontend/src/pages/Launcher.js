@@ -112,6 +112,17 @@ const Launcher = () => {
               </div>
             </div>
           </div>
+
+          {/* Kiosk Mode Link - for tablet setup */}
+          <div className="mt-8">
+            <button
+              onClick={() => navigate('/kiosk?mode=locked')}
+              className="text-xs text-slate-600 hover:text-emerald-500 transition-colors flex items-center gap-1 mx-auto"
+            >
+              <Lock className="w-3 h-3" />
+              Launch Tablet Kiosk Mode (PIN: 1234)
+            </button>
+          </div>
         </div>
       </div>
 
