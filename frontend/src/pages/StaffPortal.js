@@ -1075,6 +1075,32 @@ const StaffPortal = () => {
                         </div>
                       )}
                     </div>
+
+                    {/* Kiosk Settings */}
+                    <div className="glass-panel p-4 rounded-xl border border-blue-500/30 bg-blue-900/10">
+                      <h4 className="text-sm font-bold text-blue-400 mb-4 flex items-center gap-2">
+                        <Lock className="w-4 h-4" /> Kiosk Mode Settings
+                      </h4>
+                      <div className="flex items-center gap-4">
+                        <div className="flex-1 max-w-xs">
+                          <Label className="text-xs text-slate-400 mb-1 block">Exit PIN (for tablet kiosk mode)</Label>
+                          <Input
+                            type="text"
+                            value={kioskPin}
+                            onChange={(e) => setKioskPin(e.target.value)}
+                            placeholder="1234"
+                            className="bg-slate-950 border-slate-800"
+                            maxLength={6}
+                          />
+                        </div>
+                        <Button onClick={handleUpdateKioskPin} className="bg-blue-600 hover:bg-blue-700 mt-5">
+                          Update PIN
+                        </Button>
+                      </div>
+                      <p className="text-xs text-slate-500 mt-2">
+                        Tablet kiosk URL: <code className="text-blue-400">/kiosk?mode=locked</code>
+                      </p>
+                    </div>
                   </div>
                 </TabsContent>
               )}
