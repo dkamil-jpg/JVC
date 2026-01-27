@@ -123,15 +123,9 @@ class JustVitalityAPITester:
         # Step 1: Check if patient exists (should not exist)
         success, response = self.run_test(
             "Kiosk Check - New Patient",
-            "POST",
-            "kiosk/check",
-            200,
-            data={
-                "first_name": test_data["first_name"],
-                "last_name": test_data["last_name"], 
-                "dob": test_data["dob"],
-                "postcode": test_data["postcode"]
-            }
+            "GET",
+            f"kiosk/check?first_name={test_data['first_name']}&last_name={test_data['last_name']}&dob={test_data['dob']}&postcode={test_data['postcode']}",
+            200
         )
         
         if success and response.get("status") == "NOT_FOUND":
