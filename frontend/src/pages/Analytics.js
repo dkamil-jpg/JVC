@@ -254,6 +254,9 @@ const Analytics = () => {
             {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Filter className="w-4 h-4 mr-2" />}
             Apply Filters
           </Button>
+          <Button onClick={handleExportReport} variant="outline" className="border-slate-700">
+            <Download className="w-4 h-4 mr-2" /> Export PDF
+          </Button>
         </div>
       </div>
 
