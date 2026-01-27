@@ -13,13 +13,6 @@ Problemy zgłoszone przez użytkownika:
 2. **Administrator (Admin)** - zarządzanie użytkownikami, pełny dostęp
 3. **Pacjent** - samodzielna rejestracja w kiosku
 
-## Core Requirements
-- Kiosk: self-check-in dla pacjentów (3 kroki)
-- Staff Portal: zarządzanie pacjentami i wizytami
-- Analytics: raporty, KPI, heatmapa
-- Admin Panel: zarządzanie użytkownikami
-- Spójność danych między wszystkimi modułami
-
 ## Architecture
 - **Frontend**: React 19 + Tailwind CSS + Shadcn UI
 - **Backend**: FastAPI (Python)
@@ -28,56 +21,52 @@ Problemy zgłoszone przez użytkownika:
 
 ## What's Been Implemented (2026-01-27)
 
-### Backend API (/app/backend/server.py)
-- [x] Authentication: login, logout, change password, JWT tokens
-- [x] Admin: user management, login audit
-- [x] Patients: CRUD operations, audit logs
-- [x] Kiosk: patient check, registration (with queue addition - BUG FIXED)
-- [x] Queue: daily queue management
-- [x] Visits: create, list by patient
-- [x] Reports: summary, daily stats, consultant stats, heatmap data
+### Session 1 - MVP
+- [x] Backend API complete (auth, patients, queue, visits, reports)
+- [x] Launcher, Login, Kiosk, Staff Portal, Analytics pages
+- [x] Queue bug fixed
 
-### Frontend Pages
-- [x] **Launcher** (`/`) - wybór modułu
-- [x] **Login** (`/login`) - autoryzacja
-- [x] **Kiosk** (`/kiosk`) - 3-step registration flow
-- [x] **Staff Portal** (`/staff`) - patient management, visits
-- [x] **Analytics** (`/analytics`) - charts, KPIs, heatmap
+### Session 2 - Bug Fixes (5 issues resolved)
+- [x] **Fix #1**: Home button no longer logs out user - stays logged in
+- [x] **Fix #2**: Admin Panel modal with full functionality
+- [x] **Fix #3**: PDF export for patient cards and reports
+- [x] **Fix #4**: Signature pads in Kiosk for consent forms
+- [x] **Fix #5**: Admin operations (Users, Login Log, System Audit)
 
-### Bug Fix
-- [x] **CRITICAL**: Pacjent teraz poprawnie dodawany do kolejki po rejestracji w kiosku
+### Features:
+- **Staff Portal**: Patient list, queue, edit profile, new visit, change log, PDF export
+- **Admin Panel**: Add users, reset passwords, lock/unlock accounts, login audit, system audit, clear logs
+- **Kiosk**: 3-step registration with finger signature capture
+- **Analytics**: KPIs, charts, heatmap, PDF export
 
-### Testing Status
+## Testing Status
 - Backend: 95.2% tests passed
 - Frontend: 100% tests passed
 - Integration: 100% tests passed
-
-## Prioritized Backlog
-
-### P0 (Done)
-- [x] Kiosk registration with queue integration
-- [x] Staff Portal with patient management
-- [x] Analytics with KPIs and charts
-
-### P1 (Next)
-- [ ] PDF export for patient records
-- [ ] PDF export for reports
-- [ ] Admin Panel UI (currently users managed via API)
-- [ ] Mobile responsiveness improvements
-
-### P2 (Future)
-- [ ] Email notifications
-- [ ] Appointment scheduling
-- [ ] Treatment templates
-- [ ] Multi-clinic support
+- Fixes verification: 100%
 
 ## Credentials
 - Default Admin: `ADMIN` / `vit2025`
 
-## Tech Debt
-- Minor API inconsistency: `/api/kiosk/check` uses query params instead of JSON body
+## Google Sheets Fix (gs_fixed.txt)
+Poprawiony plik `/app/gs_fixed.txt` zawiera:
+- Daily_Queue z 7 kolumnami (dodano Reason)
+- processRegistration wpisuje "WAITING" do Status
+- getDashboardData poprawnie czyta strukturę
 
-## Next Steps
-1. Build Admin Panel UI in Staff Portal
-2. Add PDF export functionality
-3. Consider migration from Google Sheets (import existing data)
+## Prioritized Backlog
+
+### P0 (Done)
+- [x] All 5 bug fixes
+- [x] Kiosk with signatures
+- [x] Admin Panel complete
+- [x] PDF exports
+
+### P1 (Next)
+- [ ] Import danych z Google Sheets
+- [ ] Email notifications
+- [ ] Mobile app version
+
+### P2 (Future)
+- [ ] Appointment scheduling
+- [ ] Multi-clinic support
