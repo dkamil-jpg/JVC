@@ -14,6 +14,7 @@ import uuid
 from datetime import datetime, timezone, timedelta
 from collections import Counter, defaultdict
 import jwt
+import asyncio
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
