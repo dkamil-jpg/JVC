@@ -123,6 +123,21 @@ class KioskRegistration(BaseModel):
 class PasswordVerify(BaseModel):
     password: str
 
+class KioskSettings(BaseModel):
+    exit_pin: str = "1234"
+
+class ConsentRecord(BaseModel):
+    patient_id: str
+    timestamp: str
+    consent_data_processing: bool
+    consent_medical_disclaimer: bool
+    signature_data_processing: Optional[str] = None
+    signature_medical_disclaimer: Optional[str] = None
+    alerts_declared: str
+    conditions_declared: str
+    medications_declared: str
+    allergies_declared: str
+
 # ==========================================
 # HELPER FUNCTIONS
 # ==========================================
