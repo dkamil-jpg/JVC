@@ -857,32 +857,63 @@ const StaffPortal = () => {
 
               {/* Login Log Tab */}
               <TabsContent value="login-log" className="mt-0">
-                <div className="flex justify-between items-center mb-4">
+                <div className="flex justify-between items-center mb-4 flex-wrap gap-2">
                   <h4 className="text-sm font-bold text-slate-300">Login Audit Log</h4>
-                  {isAdmin && <Button size="sm" variant="destructive" onClick={handleClearLoginAudit}><Trash2 className="w-3 h-3 mr-2" />Clear (Admin)</Button>}
+                  <div className="flex gap-2">
+                    {isAdmin && (
+                      <>
+                        <Button size="sm" variant="outline" onClick={() => {
+                          const csv = [
+                            ['Timestamp', 'Username', 'Event', 'Details'].join(','),
+                            ...loginAudit.map(log => [
+                              log.ts || log.timestamp || '',
+                              log.username || '',
+                              log.event || '',
+                              `"${(log.details || '').replace(/"/g, '""')}"`
+                            ].join(','))
+                          ].join('\n');
+                          const blob = new Blob([csv], { type: 'text/csv' });
+                          const url = URL.createObjectURL(blob);
+                          const a = document.createElement('a');
+                          a.href = url;
+                          a.download = `login_audit_${new Date().toISOString().slice(0,10)}.csv`;
+                          a.click();
+                          URL.revokeObjectURL(url);
+                        }}>
+                          <Download className="w-3 h-3 mr-2" />Export CSV
+                        </Button>
+                        <Button size="sm" variant="destructive" onClick={handleClearLoginAudit}>
+                          <Trash2 className="w-3 h-3 mr-2" />Clear
+                        </Button>
+                      </>
+                    )}
+                  </div>
                 </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-xs min-w-[600px]">
-                    <thead className="bg-slate-800/50 text-slate-400 uppercase">
-                      <tr>
-                        <th className="p-2 text-left w-40">Timestamp</th>
-                        <th className="p-2 text-left w-28">User</th>
-                        <th className="p-2 text-left w-24">Event</th>
-                        <th className="p-2 text-left">Details</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {loginAudit.map((log, i) => (
-                        <tr key={i} className="border-b border-slate-800">
-                          <td className="p-2 text-slate-500 whitespace-nowrap">{log.ts || log.timestamp}</td>
-                          <td className="p-2 font-bold text-slate-300">{log.username}</td>
-                          <td className="p-2"><Badge className={log.event === 'SUCCESS' ? 'bg-emerald-500/20 text-emerald-400' : log.event === 'FAIL' || log.event === 'LOCKED' ? 'bg-red-500/20 text-red-400' : 'bg-slate-500/20 text-slate-400'}>{log.event}</Badge></td>
-                          <td className="p-2 text-slate-500">{log.details}</td>
+                <div className="border border-slate-800 rounded-lg overflow-hidden">
+                  <div className="overflow-x-auto max-h-[400px] overflow-y-auto">
+                    <table className="w-full text-xs" style={{ minWidth: '500px' }}>
+                      <thead className="bg-slate-800/50 text-slate-400 uppercase sticky top-0">
+                        <tr>
+                          <th className="p-2 text-left whitespace-nowrap">Timestamp</th>
+                          <th className="p-2 text-left whitespace-nowrap">User</th>
+                          <th className="p-2 text-left whitespace-nowrap">Event</th>
+                          <th className="p-2 text-left">Details</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody>
+                        {loginAudit.map((log, i) => (
+                          <tr key={i} className="border-b border-slate-800 hover:bg-slate-800/30">
+                            <td className="p-2 text-slate-500 whitespace-nowrap">{(log.ts || log.timestamp)?.slice(0, 19).replace('T', ' ')}</td>
+                            <td className="p-2 font-bold text-slate-300">{log.username}</td>
+                            <td className="p-2"><Badge className={log.event === 'SUCCESS' ? 'bg-emerald-500/20 text-emerald-400' : log.event === 'FAIL' || log.event === 'LOCKED' ? 'bg-red-500/20 text-red-400' : 'bg-slate-500/20 text-slate-400'}>{log.event}</Badge></td>
+                            <td className="p-2 text-slate-500">{log.details}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
+                <p className="text-xs text-slate-600 mt-2">Showing {loginAudit.length} records.</p>
               </TabsContent>
 
               {/* System Audit Tab - ALL OPERATIONS */}
