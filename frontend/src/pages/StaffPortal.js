@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useClinic } from '../contexts/ClinicContext';
@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Dialog,
   DialogContent,
@@ -15,13 +16,18 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   Home,
   Search,
   RefreshCw,
   Menu,
   X,
-  Moon,
-  Sun,
   LogOut,
   User,
   Phone,
@@ -37,14 +43,21 @@ import {
   FileText,
   ChevronDown,
   ChevronRight,
-  Clock,
   Loader2,
-  Shield
+  Shield,
+  Users,
+  Settings,
+  Download,
+  Key,
+  UserPlus,
+  ClipboardList,
+  Lock,
+  Unlock
 } from 'lucide-react';
 
 const StaffPortal = () => {
   const navigate = useNavigate();
-  const { user, logout, isManager } = useAuth();
+  const { user, logout, isManager, isAdmin, api } = useAuth();
   const { 
     patients, 
     queue, 
@@ -64,12 +77,13 @@ const StaffPortal = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [dbListOpen, setDbListOpen] = useState(true);
   const [editMode, setEditMode] = useState(false);
-  const [darkMode, setDarkMode] = useState(true);
+  const [activeTab, setActiveTab] = useState('patient');
   
   // Modals
   const [visitModalOpen, setVisitModalOpen] = useState(false);
   const [auditModalOpen, setAuditModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [adminModalOpen, setAdminModalOpen] = useState(false);
   
   // Visit history & audit
   const [visits, setVisits] = useState([]);
@@ -79,15 +93,22 @@ const StaffPortal = () => {
   const [editForm, setEditForm] = useState({});
   
   // Visit form
-  const [visitForm, setVisitForm] = useState({
-    treatment: '',
-    notes: '',
-    consultant: ''
-  });
+  const [visitForm, setVisitForm] = useState({ treatment: '', notes: '', consultant: '' });
   
   // Delete form
   const [deletePassword, setDeletePassword] = useState('');
   const [deleteConsent, setDeleteConsent] = useState(false);
+
+  // Admin Panel State
+  const [adminUsers, setAdminUsers] = useState([]);
+  const [loginAudit, setLoginAudit] = useState([]);
+  const [systemAudit, setSystemAudit] = useState([]);
+  const [newUserForm, setNewUserForm] = useState({ username: '', password: '', role: 'STAFF' });
+  const [resetPassForm, setResetPassForm] = useState({ username: '', newPassword: '' });
+  const [adminLoading, setAdminLoading] = useState(false);
+
+  // PDF Export
+  const [pdfLoading, setPdfLoading] = useState(false);
 
   // Filter patients by search
   const filteredPatients = patients.filter(p => {
@@ -108,12 +129,11 @@ const StaffPortal = () => {
     setSelectedPatient(patient);
     setSidebarOpen(false);
     setEditMode(false);
+    setActiveTab('patient');
     
-    // Load visits
     const patientVisits = await getPatientVisits(patient.patient_id);
     setVisits(patientVisits);
     
-    // Set edit form
     setEditForm({
       phone: patient.phone || '',
       email: patient.email || '',
@@ -135,7 +155,6 @@ const StaffPortal = () => {
     const result = await updatePatient(selectedPatient.patient_id, editForm);
     if (result.success) {
       setEditMode(false);
-      // Reload patient data
       const updated = await loadPatient(selectedPatient.patient_id);
       if (updated) {
         setSelectedPatient({ ...selectedPatient, ...updated });
@@ -143,7 +162,7 @@ const StaffPortal = () => {
     }
   };
 
-  // Open visit modal
+  // Visit modal
   const handleOpenVisitModal = () => {
     setVisitForm({
       treatment: '',
@@ -153,7 +172,6 @@ const StaffPortal = () => {
     setVisitModalOpen(true);
   };
 
-  // Submit visit
   const handleSubmitVisit = async () => {
     const result = await createVisit({
       patient_id: selectedPatient.patient_id,
@@ -163,15 +181,13 @@ const StaffPortal = () => {
     });
     if (result.success) {
       setVisitModalOpen(false);
-      // Reload visits
       const patientVisits = await getPatientVisits(selectedPatient.patient_id);
       setVisits(patientVisits);
-      // Update selected patient to clear reason
       setSelectedPatient(prev => ({ ...prev, queue_reason: '', reason: '' }));
     }
   };
 
-  // Show audit logs
+  // Audit logs
   const handleShowAudit = async () => {
     const logs = await getPatientAudit(selectedPatient.patient_id);
     setAuditLogs(logs);
@@ -189,9 +205,105 @@ const StaffPortal = () => {
     }
   };
 
-  // Navigate to kiosk for new patient registration
-  const handleNewPatient = () => {
-    navigate('/kiosk');
+  // PDF Export
+  const handleExportPDF = async () => {
+    if (!selectedPatient) return;
+    setPdfLoading(true);
+    try {
+      const response = await api().get(`/patients/${selectedPatient.patient_id}/pdf`);
+      if (response.data.success) {
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(response.data.html);
+        printWindow.document.close();
+        printWindow.onload = () => {
+          printWindow.print();
+        };
+      }
+    } catch (error) {
+      console.error('PDF export failed:', error);
+    } finally {
+      setPdfLoading(false);
+    }
+  };
+
+  // Admin Panel Functions
+  const loadAdminData = async () => {
+    setAdminLoading(true);
+    try {
+      const [usersRes, loginRes, systemRes] = await Promise.all([
+        api().get('/admin/users'),
+        api().get('/admin/login-audit', { params: { limit: 200 } }),
+        api().get('/admin/system-audit', { params: { limit: 200 } })
+      ]);
+      setAdminUsers(usersRes.data || []);
+      setLoginAudit(loginRes.data?.rows || []);
+      setSystemAudit(systemRes.data?.logs || []);
+    } catch (error) {
+      console.error('Failed to load admin data:', error);
+    } finally {
+      setAdminLoading(false);
+    }
+  };
+
+  const handleOpenAdminModal = () => {
+    loadAdminData();
+    setAdminModalOpen(true);
+  };
+
+  const handleAddUser = async () => {
+    if (!newUserForm.username || !newUserForm.password) return;
+    try {
+      await api().post('/admin/users', newUserForm);
+      setNewUserForm({ username: '', password: '', role: 'STAFF' });
+      loadAdminData();
+    } catch (error) {
+      alert(error.response?.data?.detail || 'Failed to add user');
+    }
+  };
+
+  const handleResetPassword = async (username) => {
+    const newPass = prompt(`Enter new password for ${username}:`);
+    if (!newPass) return;
+    try {
+      await api().post(`/admin/users/${username}/reset-password`, null, { params: { new_password: newPass } });
+      alert('Password reset successfully');
+    } catch (error) {
+      alert(error.response?.data?.detail || 'Failed to reset password');
+    }
+  };
+
+  const handleToggleUserActive = async (username, currentActive) => {
+    try {
+      await api().post(`/admin/users/${username}/toggle-active`, null, { params: { active: !currentActive } });
+      loadAdminData();
+    } catch (error) {
+      alert(error.response?.data?.detail || 'Failed to update user');
+    }
+  };
+
+  const handleClearLoginAudit = async () => {
+    if (!window.confirm('Clear all login audit logs?')) return;
+    try {
+      await api().delete('/admin/login-audit');
+      loadAdminData();
+    } catch (error) {
+      alert('Failed to clear logs');
+    }
+  };
+
+  const handleClearSystemAudit = async () => {
+    if (!window.confirm('Clear all system audit logs?')) return;
+    try {
+      await api().delete('/admin/system-audit');
+      loadAdminData();
+    } catch (error) {
+      alert('Failed to clear logs');
+    }
+  };
+
+  // Go home without logout
+  const goToHome = () => {
+    navigate('/');
   };
 
   return (
@@ -199,30 +311,20 @@ const StaffPortal = () => {
       {/* Mobile Header */}
       <div className="md:hidden bg-slate-900 border-b border-slate-800 p-4 flex justify-between items-center z-50 shrink-0 h-14">
         <div className="font-bold text-lg text-white">
-          Just Vitality <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-600">Clinic</span>
+          Just Vitality <span className="text-blue-500">Clinic</span>
         </div>
         <div className="flex items-center gap-4">
-          <button onClick={() => navigate('/')} className="text-slate-400 hover:text-white">
+          <button onClick={goToHome} className="text-slate-400 hover:text-white">
             <Home className="w-5 h-5" />
           </button>
-          <button onClick={() => setSidebarOpen(!sidebarOpen)} className="text-white p-2 border border-slate-700 rounded hover:bg-slate-800">
+          <button onClick={() => setSidebarOpen(!sidebarOpen)} className="text-white p-2 border border-slate-700 rounded">
             {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
         </div>
       </div>
 
       {/* Sidebar */}
-      <aside 
-        className={`
-          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-          md:translate-x-0
-          fixed md:relative top-14 md:top-0 bottom-0 left-0 
-          w-full md:w-[340px] 
-          bg-slate-900 border-r border-slate-800 
-          flex flex-col z-40 
-          transition-transform duration-300
-        `}
-      >
+      <aside className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 fixed md:relative top-14 md:top-0 bottom-0 left-0 w-full md:w-[340px] bg-slate-900 border-r border-slate-800 flex flex-col z-40 transition-transform duration-300`}>
         {/* User Info */}
         <div className="p-4 border-b border-slate-800">
           <div className="hidden md:flex justify-between items-center mb-2">
@@ -234,10 +336,15 @@ const StaffPortal = () => {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <button onClick={() => navigate('/')} className="p-2 rounded-full hover:bg-slate-800 transition text-slate-400 hover:text-white">
+              <button onClick={goToHome} className="p-2 rounded-full hover:bg-slate-800 text-slate-400 hover:text-white" title="Home (stay logged in)">
                 <Home className="w-5 h-5" />
               </button>
-              <button onClick={logout} className="p-2 rounded-full hover:bg-slate-800 transition text-red-400 hover:text-red-300">
+              {(isAdmin || isManager) && (
+                <button onClick={handleOpenAdminModal} className="p-2 rounded-full hover:bg-slate-800 text-slate-400 hover:text-violet-400" title="Admin Panel">
+                  <Settings className="w-5 h-5" />
+                </button>
+              )}
+              <button onClick={logout} className="p-2 rounded-full hover:bg-slate-800 text-red-400 hover:text-red-300" title="Logout">
                 <LogOut className="w-5 h-5" />
               </button>
             </div>
@@ -247,7 +354,12 @@ const StaffPortal = () => {
           <div className="md:hidden mb-4 p-2 bg-slate-800/50 rounded">
             <div className="flex justify-between items-center">
               <span className="text-xs text-slate-400">User: <span className="text-white font-bold">{user?.username}</span></span>
-              <button onClick={logout} className="text-xs text-red-400">Sign Out</button>
+              <div className="flex gap-2">
+                {(isAdmin || isManager) && (
+                  <button onClick={handleOpenAdminModal} className="text-xs text-violet-400">Admin</button>
+                )}
+                <button onClick={logout} className="text-xs text-red-400">Sign Out</button>
+              </div>
             </div>
           </div>
 
@@ -263,13 +375,7 @@ const StaffPortal = () => {
                 className="pl-9 bg-slate-950 border-slate-800 h-10"
               />
             </div>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={loadDashboardData}
-              disabled={loading}
-              className="border-slate-800 hover:bg-slate-800"
-            >
+            <Button variant="outline" size="icon" onClick={loadDashboardData} disabled={loading} className="border-slate-800">
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             </Button>
           </div>
@@ -287,29 +393,21 @@ const StaffPortal = () => {
             filteredQueue.map(p => (
               <div
                 key={p.patient_id}
-                data-testid={`queue-patient-${p.patient_id}`}
                 onClick={() => handleSelectPatient(p)}
-                className={`p-3 border-b border-slate-800 hover:bg-blue-500/10 cursor-pointer flex justify-between items-center ${
-                  selectedPatient?.patient_id === p.patient_id ? 'bg-blue-500/20' : ''
-                }`}
+                className={`p-3 border-b border-slate-800 hover:bg-blue-500/10 cursor-pointer flex justify-between items-center ${selectedPatient?.patient_id === p.patient_id ? 'bg-blue-500/20' : ''}`}
               >
                 <div>
                   <div className="font-bold text-sm uppercase text-white">{p.name}</div>
                   <div className="text-xs text-blue-500 truncate max-w-[200px]">{p.queue_reason}</div>
                 </div>
-                {p.is_new && (
-                  <Badge variant="outline" className="text-[9px] border-yellow-500 text-yellow-500">NEW</Badge>
-                )}
+                {p.is_new && <Badge variant="outline" className="text-[9px] border-yellow-500 text-yellow-500">NEW</Badge>}
               </div>
             ))
           )}
         </ScrollArea>
 
         {/* Database List */}
-        <div 
-          onClick={() => setDbListOpen(!dbListOpen)}
-          className="px-4 py-2 border-b border-slate-800 bg-slate-800/30 flex justify-between items-center cursor-pointer hover:bg-slate-800/50"
-        >
+        <div onClick={() => setDbListOpen(!dbListOpen)} className="px-4 py-2 border-b border-slate-800 bg-slate-800/30 flex justify-between items-center cursor-pointer hover:bg-slate-800/50">
           <h3 className="text-xs font-bold text-slate-400 uppercase">Database (A-Z)</h3>
           <div className="flex items-center gap-2">
             <Badge variant="secondary" className="text-[10px]">{filteredPatients.length}</Badge>
@@ -321,28 +419,22 @@ const StaffPortal = () => {
             {filteredPatients.map(p => (
               <div
                 key={p.patient_id}
-                data-testid={`patient-${p.patient_id}`}
                 onClick={() => handleSelectPatient(p)}
-                className={`p-3 border-b border-slate-800 hover:bg-slate-800/50 cursor-pointer flex justify-between items-center ${
-                  selectedPatient?.patient_id === p.patient_id ? 'bg-blue-500/20' : ''
-                }`}
+                className={`p-3 border-b border-slate-800 hover:bg-slate-800/50 cursor-pointer flex justify-between items-center ${selectedPatient?.patient_id === p.patient_id ? 'bg-blue-500/20' : ''}`}
               >
                 <div>
                   <div className="font-bold text-sm uppercase text-slate-200">{p.name}</div>
                   <div className="text-xs text-slate-500">{p.dob}</div>
                 </div>
-                {p.is_new && (
-                  <Badge variant="outline" className="text-[9px] border-yellow-500 text-yellow-500">NEW</Badge>
-                )}
+                {p.is_new && <Badge variant="outline" className="text-[9px] border-yellow-500 text-yellow-500">NEW</Badge>}
               </div>
             ))}
           </ScrollArea>
         )}
 
-        {/* Footer */}
         <div className="p-4 border-t border-slate-800 mt-auto">
           <div className="text-[10px] text-slate-600 text-center">
-            System by <a href="mailto:dyczkowski.kamil@gmail.com" className="text-blue-500 hover:underline">Kamil Dyczkowski</a> 2026
+            System by <a href="mailto:dyczkowski.kamil@gmail.com" className="text-blue-500">Kamil Dyczkowski</a> 2026
           </div>
         </div>
       </aside>
@@ -363,34 +455,20 @@ const StaffPortal = () => {
                 <p className="text-xs text-slate-500 font-mono">ID: {selectedPatient.patient_id}</p>
               </div>
               <div className="flex flex-wrap gap-2">
-                <Button
-                  data-testid="new-patient-btn"
-                  onClick={handleNewPatient}
-                  className="bg-emerald-600 hover:bg-emerald-700"
-                >
+                <Button onClick={() => navigate('/kiosk')} className="bg-emerald-600 hover:bg-emerald-700">
                   <Plus className="w-4 h-4 mr-2" /> New Patient
                 </Button>
-                <Button
-                  data-testid="audit-btn"
-                  variant="outline"
-                  onClick={handleShowAudit}
-                  className="border-slate-700"
-                >
+                <Button variant="outline" onClick={handleShowAudit} className="border-slate-700">
                   <History className="w-4 h-4 mr-2" /> Change Log
                 </Button>
-                <Button
-                  data-testid="edit-btn"
-                  variant={editMode ? "default" : "outline"}
-                  onClick={() => setEditMode(!editMode)}
-                  className={editMode ? "bg-emerald-600" : "border-slate-700"}
-                >
+                <Button variant="outline" onClick={handleExportPDF} disabled={pdfLoading} className="border-slate-700">
+                  {pdfLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Download className="w-4 h-4 mr-2" />}
+                  Export PDF
+                </Button>
+                <Button variant={editMode ? "default" : "outline"} onClick={() => setEditMode(!editMode)} className={editMode ? "bg-emerald-600" : "border-slate-700"}>
                   <Edit className="w-4 h-4 mr-2" /> {editMode ? 'Editing...' : 'Edit Profile'}
                 </Button>
-                <Button
-                  data-testid="new-visit-btn"
-                  onClick={handleOpenVisitModal}
-                  className="bg-blue-600 hover:bg-blue-700"
-                >
+                <Button onClick={handleOpenVisitModal} className="bg-blue-600 hover:bg-blue-700">
                   <Plus className="w-4 h-4 mr-2" /> New Visit
                 </Button>
               </div>
@@ -400,36 +478,23 @@ const StaffPortal = () => {
             <ScrollArea className="flex-1 p-4 md:p-6">
               {/* Info Tiles */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                {/* Reason */}
                 <div className="glass-panel p-4 rounded-xl border-l-4 border-blue-500">
                   <h3 className="text-xs text-blue-500 font-bold uppercase mb-1">Reason</h3>
-                  <p className="text-sm italic text-slate-300">
-                    {selectedPatient.queue_reason || selectedPatient.reason || 'No active visit.'}
-                  </p>
+                  <p className="text-sm italic text-slate-300">{selectedPatient.queue_reason || selectedPatient.reason || 'No active visit.'}</p>
                 </div>
 
-                {/* Alerts */}
-                <div className={`glass-panel p-4 rounded-xl flex items-center justify-between ${
-                  selectedPatient.alerts ? 'border border-red-500 bg-red-500/10' : ''
-                }`}>
+                <div className={`glass-panel p-4 rounded-xl flex items-center justify-between ${selectedPatient.alerts ? 'border border-red-500 bg-red-500/10' : ''}`}>
                   <div>
                     <h3 className="text-xs font-bold uppercase text-slate-400">Alerts (Today)</h3>
-                    <p className={`text-sm ${selectedPatient.alerts ? 'text-red-500 font-bold' : 'text-slate-500'}`}>
-                      {selectedPatient.alerts || 'None.'}
-                    </p>
+                    <p className={`text-sm ${selectedPatient.alerts ? 'text-red-500 font-bold' : 'text-slate-500'}`}>{selectedPatient.alerts || 'None.'}</p>
                   </div>
                   <AlertTriangle className={`w-6 h-6 ${selectedPatient.alerts ? 'text-red-500' : 'text-slate-700'}`} />
                 </div>
 
-                {/* Allergies */}
                 <div className="glass-panel p-4 rounded-xl border-l-4 border-red-500">
                   <h3 className="text-xs text-red-500 font-bold uppercase mb-1">Allergies</h3>
                   {editMode ? (
-                    <Input
-                      value={editForm.allergies}
-                      onChange={(e) => setEditForm(prev => ({ ...prev, allergies: e.target.value }))}
-                      className="bg-slate-950 border-slate-800 h-10"
-                    />
+                    <Input value={editForm.allergies} onChange={(e) => setEditForm(prev => ({ ...prev, allergies: e.target.value }))} className="bg-slate-950 border-slate-800 h-10" />
                   ) : (
                     <p className="text-sm text-slate-300">{selectedPatient.allergies || 'NKDA'}</p>
                   )}
@@ -439,31 +504,18 @@ const StaffPortal = () => {
               {/* Medical Info */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <div className="flex flex-col gap-4">
-                  {/* Medications */}
                   <div className="glass-panel p-4 rounded-xl flex-1">
-                    <label className="text-xs text-slate-400 font-bold uppercase mb-1 block">
-                      <Pill className="w-3 h-3 inline mr-1" /> Medications
-                    </label>
+                    <label className="text-xs text-slate-400 font-bold uppercase mb-1 block"><Pill className="w-3 h-3 inline mr-1" /> Medications</label>
                     {editMode ? (
-                      <Textarea
-                        value={editForm.medications}
-                        onChange={(e) => setEditForm(prev => ({ ...prev, medications: e.target.value }))}
-                        className="bg-slate-950 border-slate-800 h-24"
-                      />
+                      <Textarea value={editForm.medications} onChange={(e) => setEditForm(prev => ({ ...prev, medications: e.target.value }))} className="bg-slate-950 border-slate-800 h-24" />
                     ) : (
                       <p className="text-sm text-slate-300">{selectedPatient.medications || '-'}</p>
                     )}
                   </div>
-
-                  {/* Surgeries */}
                   <div className="glass-panel p-4 rounded-xl flex-1">
                     <label className="text-xs text-slate-400 font-bold uppercase mb-1 block">Surgeries</label>
                     {editMode ? (
-                      <Textarea
-                        value={editForm.surgeries}
-                        onChange={(e) => setEditForm(prev => ({ ...prev, surgeries: e.target.value }))}
-                        className="bg-slate-950 border-slate-800 h-24"
-                      />
+                      <Textarea value={editForm.surgeries} onChange={(e) => setEditForm(prev => ({ ...prev, surgeries: e.target.value }))} className="bg-slate-950 border-slate-800 h-24" />
                     ) : (
                       <p className="text-sm text-slate-300">{selectedPatient.surgeries || '-'}</p>
                     )}
@@ -471,23 +523,14 @@ const StaffPortal = () => {
                 </div>
 
                 <div className="flex flex-col gap-4">
-                  {/* Conditions */}
                   <div className="glass-panel p-4 rounded-xl flex-1">
-                    <label className="text-xs text-slate-400 font-bold uppercase mb-1 block">
-                      <Heart className="w-3 h-3 inline mr-1" /> Conditions
-                    </label>
+                    <label className="text-xs text-slate-400 font-bold uppercase mb-1 block"><Heart className="w-3 h-3 inline mr-1" /> Conditions</label>
                     {editMode ? (
-                      <Textarea
-                        value={editForm.conditions}
-                        onChange={(e) => setEditForm(prev => ({ ...prev, conditions: e.target.value }))}
-                        className="bg-slate-950 border-slate-800 h-24"
-                      />
+                      <Textarea value={editForm.conditions} onChange={(e) => setEditForm(prev => ({ ...prev, conditions: e.target.value }))} className="bg-slate-950 border-slate-800 h-24" />
                     ) : (
                       <p className="text-sm text-slate-300">{selectedPatient.conditions || '-'}</p>
                     )}
                   </div>
-
-                  {/* IV History / Notes */}
                   <div className="glass-panel p-4 rounded-xl flex-1">
                     <label className="text-xs text-yellow-500 font-bold uppercase mb-1 block">IV History / Notes</label>
                     <Textarea
@@ -504,89 +547,33 @@ const StaffPortal = () => {
                 <div className="glass-panel p-4 rounded-xl">
                   <h3 className="text-xs text-slate-400 font-bold uppercase mb-3">Contact Details</h3>
                   <div className="space-y-2 text-sm">
-                    <p className="flex items-center gap-2 text-slate-300">
-                      <Phone className="w-4 h-4 text-slate-500" /> {selectedPatient.phone || '-'}
-                    </p>
-                    <p className="flex items-center gap-2 text-slate-300">
-                      <Mail className="w-4 h-4 text-slate-500" /> {selectedPatient.email || '-'}
-                    </p>
-                    <p className="flex items-center gap-2 text-slate-300">
-                      <MapPin className="w-4 h-4 text-slate-500" /> 
-                      {[selectedPatient.street, selectedPatient.city, selectedPatient.postcode].filter(Boolean).join(', ') || '-'}
-                    </p>
-                    <p className="flex items-center gap-2 text-red-400">
-                      <AlertTriangle className="w-4 h-4" /> 
-                      {selectedPatient.emergency_name} {selectedPatient.emergency_phone}
-                    </p>
+                    <p className="flex items-center gap-2 text-slate-300"><Phone className="w-4 h-4 text-slate-500" /> {selectedPatient.phone || '-'}</p>
+                    <p className="flex items-center gap-2 text-slate-300"><Mail className="w-4 h-4 text-slate-500" /> {selectedPatient.email || '-'}</p>
+                    <p className="flex items-center gap-2 text-slate-300"><MapPin className="w-4 h-4 text-slate-500" /> {[selectedPatient.street, selectedPatient.city, selectedPatient.postcode].filter(Boolean).join(', ') || '-'}</p>
+                    <p className="flex items-center gap-2 text-red-400"><AlertTriangle className="w-4 h-4" /> {selectedPatient.emergency_name} {selectedPatient.emergency_phone}</p>
                   </div>
 
-                  {/* Edit Contact Form */}
                   {editMode && (
                     <div className="mt-4 pt-4 border-t border-slate-800 space-y-2">
-                      <Input
-                        placeholder="Phone"
-                        value={editForm.phone}
-                        onChange={(e) => setEditForm(prev => ({ ...prev, phone: e.target.value }))}
-                        className="bg-slate-950 border-slate-800"
-                      />
-                      <Input
-                        placeholder="Email"
-                        value={editForm.email}
-                        onChange={(e) => setEditForm(prev => ({ ...prev, email: e.target.value }))}
-                        className="bg-slate-950 border-slate-800"
-                      />
-                      <Input
-                        placeholder="Street"
-                        value={editForm.street}
-                        onChange={(e) => setEditForm(prev => ({ ...prev, street: e.target.value }))}
-                        className="bg-slate-950 border-slate-800"
-                      />
+                      <Input placeholder="Phone" value={editForm.phone} onChange={(e) => setEditForm(prev => ({ ...prev, phone: e.target.value }))} className="bg-slate-950 border-slate-800" />
+                      <Input placeholder="Email" value={editForm.email} onChange={(e) => setEditForm(prev => ({ ...prev, email: e.target.value }))} className="bg-slate-950 border-slate-800" />
+                      <Input placeholder="Street" value={editForm.street} onChange={(e) => setEditForm(prev => ({ ...prev, street: e.target.value }))} className="bg-slate-950 border-slate-800" />
                       <div className="flex gap-2">
-                        <Input
-                          placeholder="City"
-                          value={editForm.city}
-                          onChange={(e) => setEditForm(prev => ({ ...prev, city: e.target.value }))}
-                          className="bg-slate-950 border-slate-800 flex-1"
-                        />
-                        <Input
-                          placeholder="Postcode"
-                          value={editForm.postcode}
-                          onChange={(e) => setEditForm(prev => ({ ...prev, postcode: e.target.value }))}
-                          className="bg-slate-950 border-slate-800 w-1/3"
-                        />
+                        <Input placeholder="City" value={editForm.city} onChange={(e) => setEditForm(prev => ({ ...prev, city: e.target.value }))} className="bg-slate-950 border-slate-800 flex-1" />
+                        <Input placeholder="Postcode" value={editForm.postcode} onChange={(e) => setEditForm(prev => ({ ...prev, postcode: e.target.value }))} className="bg-slate-950 border-slate-800 w-1/3" />
                       </div>
                       <label className="text-xs text-red-500 font-bold mt-2 block">Emergency Contact</label>
                       <div className="grid grid-cols-2 gap-2">
-                        <Input
-                          placeholder="Name"
-                          value={editForm.emergency_name}
-                          onChange={(e) => setEditForm(prev => ({ ...prev, emergency_name: e.target.value }))}
-                          className="bg-slate-950 border-slate-800"
-                        />
-                        <Input
-                          placeholder="Phone"
-                          value={editForm.emergency_phone}
-                          onChange={(e) => setEditForm(prev => ({ ...prev, emergency_phone: e.target.value }))}
-                          className="bg-slate-950 border-slate-800"
-                        />
+                        <Input placeholder="Name" value={editForm.emergency_name} onChange={(e) => setEditForm(prev => ({ ...prev, emergency_name: e.target.value }))} className="bg-slate-950 border-slate-800" />
+                        <Input placeholder="Phone" value={editForm.emergency_phone} onChange={(e) => setEditForm(prev => ({ ...prev, emergency_phone: e.target.value }))} className="bg-slate-950 border-slate-800" />
                       </div>
-                      <Button onClick={handleSavePatient} className="w-full mt-3 bg-emerald-600 hover:bg-emerald-700">
-                        Save Changes
-                      </Button>
+                      <Button onClick={handleSavePatient} className="w-full mt-3 bg-emerald-600 hover:bg-emerald-700">Save Changes</Button>
 
-                      {/* Manager Zone */}
                       {isManager && (
                         <div className="mt-6 pt-4 border-t border-slate-700">
                           <div className="p-4 border border-red-500/30 rounded-lg bg-red-900/10">
-                            <h3 className="text-xs text-red-400 font-bold uppercase mb-2 flex items-center gap-2">
-                              <Shield className="w-4 h-4" /> Manager Zone
-                            </h3>
-                            <Button
-                              data-testid="delete-patient-btn"
-                              variant="destructive"
-                              onClick={() => setDeleteModalOpen(true)}
-                              className="w-full"
-                            >
+                            <h3 className="text-xs text-red-400 font-bold uppercase mb-2 flex items-center gap-2"><Shield className="w-4 h-4" /> Manager Zone</h3>
+                            <Button variant="destructive" onClick={() => setDeleteModalOpen(true)} className="w-full">
                               <Trash2 className="w-4 h-4 mr-2" /> Delete Record
                             </Button>
                           </div>
@@ -611,9 +598,7 @@ const StaffPortal = () => {
                   </thead>
                   <tbody>
                     {visits.length === 0 ? (
-                      <tr>
-                        <td colSpan={4} className="p-4 text-center text-slate-500">No history</td>
-                      </tr>
+                      <tr><td colSpan={4} className="p-4 text-center text-slate-500">No history</td></tr>
                     ) : (
                       visits.map((v, i) => (
                         <tr key={v.visit_id || i} className="border-b border-slate-800 hover:bg-slate-800/30">
@@ -635,48 +620,24 @@ const StaffPortal = () => {
       {/* Visit Modal */}
       <Dialog open={visitModalOpen} onOpenChange={setVisitModalOpen}>
         <DialogContent className="bg-slate-900 border-slate-800">
-          <DialogHeader>
-            <DialogTitle>New Consultation</DialogTitle>
-          </DialogHeader>
+          <DialogHeader><DialogTitle>New Consultation</DialogTitle></DialogHeader>
           <div className="space-y-4">
             <div>
               <label className="text-xs text-slate-400 uppercase">Treatment</label>
-              <Input
-                data-testid="visit-treatment"
-                value={visitForm.treatment}
-                onChange={(e) => setVisitForm(prev => ({ ...prev, treatment: e.target.value }))}
-                placeholder="e.g., IV Vitamin Infusion"
-                className="bg-slate-950 border-slate-800 mt-1"
-              />
+              <Input value={visitForm.treatment} onChange={(e) => setVisitForm(prev => ({ ...prev, treatment: e.target.value }))} placeholder="e.g., IV Vitamin Infusion" className="bg-slate-950 border-slate-800 mt-1" />
             </div>
             <div>
               <label className="text-xs text-slate-400 uppercase">Notes</label>
-              <Textarea
-                data-testid="visit-notes"
-                value={visitForm.notes}
-                onChange={(e) => setVisitForm(prev => ({ ...prev, notes: e.target.value }))}
-                className="bg-slate-950 border-slate-800 mt-1 h-24"
-              />
+              <Textarea value={visitForm.notes} onChange={(e) => setVisitForm(prev => ({ ...prev, notes: e.target.value }))} className="bg-slate-950 border-slate-800 mt-1 h-24" />
             </div>
             <div>
               <label className="text-xs text-slate-400 uppercase">Consultant</label>
-              <Input
-                value={visitForm.consultant}
-                readOnly
-                className="bg-slate-950 border-slate-800 mt-1 text-slate-500"
-              />
+              <Input value={visitForm.consultant} readOnly className="bg-slate-950 border-slate-800 mt-1 text-slate-500" />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setVisitModalOpen(false)}>Cancel</Button>
-            <Button 
-              data-testid="visit-submit"
-              onClick={handleSubmitVisit}
-              disabled={!visitForm.treatment}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              Save Visit
-            </Button>
+            <Button onClick={handleSubmitVisit} disabled={!visitForm.treatment} className="bg-blue-600 hover:bg-blue-700">Save Visit</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -684,25 +645,15 @@ const StaffPortal = () => {
       {/* Audit Modal */}
       <Dialog open={auditModalOpen} onOpenChange={setAuditModalOpen}>
         <DialogContent className="bg-slate-900 border-slate-800 max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Change Log - {selectedPatient?.name}</DialogTitle>
-          </DialogHeader>
+          <DialogHeader><DialogTitle>Change Log - {selectedPatient?.name}</DialogTitle></DialogHeader>
           <ScrollArea className="max-h-[400px]">
             <table className="w-full text-xs">
               <thead className="bg-slate-800/50 text-slate-400 uppercase">
-                <tr>
-                  <th className="p-2 text-left">Date</th>
-                  <th className="p-2 text-left">Field</th>
-                  <th className="p-2 text-left">Old Value</th>
-                  <th className="p-2 text-left">New Value</th>
-                  <th className="p-2 text-left">User</th>
-                </tr>
+                <tr><th className="p-2 text-left">Date</th><th className="p-2 text-left">Field</th><th className="p-2 text-left">Old Value</th><th className="p-2 text-left">New Value</th><th className="p-2 text-left">User</th></tr>
               </thead>
               <tbody>
                 {auditLogs.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="p-4 text-center text-slate-500">No changes recorded</td>
-                  </tr>
+                  <tr><td colSpan={5} className="p-4 text-center text-slate-500">No changes recorded</td></tr>
                 ) : (
                   auditLogs.map((log, i) => (
                     <tr key={i} className="border-b border-slate-800">
@@ -717,50 +668,147 @@ const StaffPortal = () => {
               </tbody>
             </table>
           </ScrollArea>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setAuditModalOpen(false)}>Close</Button>
-          </DialogFooter>
+          <DialogFooter><Button variant="outline" onClick={() => setAuditModalOpen(false)}>Close</Button></DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Delete Modal */}
       <Dialog open={deleteModalOpen} onOpenChange={setDeleteModalOpen}>
         <DialogContent className="bg-slate-900 border-slate-800">
-          <DialogHeader>
-            <DialogTitle className="text-red-500">Delete Patient Record</DialogTitle>
-          </DialogHeader>
+          <DialogHeader><DialogTitle className="text-red-500">Delete Patient Record</DialogTitle></DialogHeader>
           <div className="space-y-4">
-            <p className="text-slate-400 text-sm">
-              This will permanently delete <strong className="text-white">{selectedPatient?.name}</strong> and all their visit history. This action cannot be undone.
-            </p>
+            <p className="text-slate-400 text-sm">This will permanently delete <strong className="text-white">{selectedPatient?.name}</strong> and all their visit history.</p>
             <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={deleteConsent}
-                onChange={(e) => setDeleteConsent(e.target.checked)}
-                className="w-4 h-4"
-              />
+              <input type="checkbox" checked={deleteConsent} onChange={(e) => setDeleteConsent(e.target.checked)} className="w-4 h-4" />
               <label className="text-sm text-slate-400">I understand this action is permanent</label>
             </div>
             <div>
               <label className="text-xs text-slate-400 uppercase">Enter your password to confirm</label>
-              <Input
-                type="password"
-                value={deletePassword}
-                onChange={(e) => setDeletePassword(e.target.value)}
-                className="bg-slate-950 border-slate-800 mt-1"
-              />
+              <Input type="password" value={deletePassword} onChange={(e) => setDeletePassword(e.target.value)} className="bg-slate-950 border-slate-800 mt-1" />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteModalOpen(false)}>Cancel</Button>
-            <Button 
-              variant="destructive"
-              onClick={handleDeletePatient}
-              disabled={!deleteConsent || !deletePassword}
-            >
-              Delete Record
-            </Button>
+            <Button variant="destructive" onClick={handleDeletePatient} disabled={!deleteConsent || !deletePassword}>Delete Record</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Admin Panel Modal */}
+      <Dialog open={adminModalOpen} onOpenChange={setAdminModalOpen}>
+        <DialogContent className="bg-slate-900 border-slate-800 max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><Shield className="w-5 h-5 text-violet-500" /> Admin Panel</DialogTitle>
+          </DialogHeader>
+          
+          <Tabs defaultValue="users" className="flex-1 overflow-hidden flex flex-col">
+            <TabsList className="bg-slate-800 mb-4">
+              <TabsTrigger value="users"><Users className="w-4 h-4 mr-2" />Users</TabsTrigger>
+              <TabsTrigger value="login-log"><Key className="w-4 h-4 mr-2" />Login Log</TabsTrigger>
+              <TabsTrigger value="system-log"><ClipboardList className="w-4 h-4 mr-2" />System Audit</TabsTrigger>
+            </TabsList>
+
+            <ScrollArea className="flex-1">
+              {/* Users Tab */}
+              <TabsContent value="users" className="mt-0">
+                {isAdmin && (
+                  <div className="glass-panel p-4 mb-4 rounded-xl">
+                    <h4 className="text-sm font-bold text-slate-300 mb-3">Add New User</h4>
+                    <div className="flex gap-2 flex-wrap">
+                      <Input placeholder="Username" value={newUserForm.username} onChange={(e) => setNewUserForm(prev => ({ ...prev, username: e.target.value }))} className="bg-slate-950 border-slate-800 w-40" />
+                      <Input type="password" placeholder="Password" value={newUserForm.password} onChange={(e) => setNewUserForm(prev => ({ ...prev, password: e.target.value }))} className="bg-slate-950 border-slate-800 w-40" />
+                      <Select value={newUserForm.role} onValueChange={(v) => setNewUserForm(prev => ({ ...prev, role: v }))}>
+                        <SelectTrigger className="w-32 bg-slate-950 border-slate-800"><SelectValue /></SelectTrigger>
+                        <SelectContent className="bg-slate-900 border-slate-800">
+                          <SelectItem value="STAFF">STAFF</SelectItem>
+                          <SelectItem value="MANAGER">MANAGER</SelectItem>
+                          <SelectItem value="ADMIN">ADMIN</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Button onClick={handleAddUser} className="bg-emerald-600 hover:bg-emerald-700"><UserPlus className="w-4 h-4 mr-2" />Add</Button>
+                    </div>
+                  </div>
+                )}
+
+                <table className="w-full text-sm">
+                  <thead className="bg-slate-800/50 text-xs uppercase text-slate-400">
+                    <tr><th className="p-3 text-left">Username</th><th className="p-3 text-left">Role</th><th className="p-3 text-left">Status</th><th className="p-3 text-left">Last Login</th><th className="p-3 text-left">Actions</th></tr>
+                  </thead>
+                  <tbody>
+                    {adminUsers.map((u, i) => (
+                      <tr key={i} className="border-b border-slate-800">
+                        <td className="p-3 font-bold text-slate-200">{u.username}</td>
+                        <td className="p-3"><Badge variant="outline" className={u.role === 'ADMIN' ? 'border-violet-500 text-violet-400' : u.role === 'MANAGER' ? 'border-blue-500 text-blue-400' : 'border-slate-600 text-slate-400'}>{u.role}</Badge></td>
+                        <td className="p-3">{u.active ? <Badge className="bg-emerald-500/20 text-emerald-400">Active</Badge> : <Badge className="bg-red-500/20 text-red-400">Locked</Badge>}</td>
+                        <td className="p-3 text-slate-500 text-xs">{u.lastLogin || u.last_login || '-'}</td>
+                        <td className="p-3">
+                          <div className="flex gap-2">
+                            <Button size="sm" variant="outline" onClick={() => handleResetPassword(u.username)} className="h-8 px-2"><Key className="w-3 h-3" /></Button>
+                            <Button size="sm" variant="outline" onClick={() => handleToggleUserActive(u.username, u.active)} className={`h-8 px-2 ${u.active ? 'text-red-400' : 'text-emerald-400'}`}>
+                              {u.active ? <Lock className="w-3 h-3" /> : <Unlock className="w-3 h-3" />}
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </TabsContent>
+
+              {/* Login Log Tab */}
+              <TabsContent value="login-log" className="mt-0">
+                <div className="flex justify-between items-center mb-4">
+                  <h4 className="text-sm font-bold text-slate-300">Login Audit Log</h4>
+                  {isAdmin && <Button size="sm" variant="destructive" onClick={handleClearLoginAudit}><Trash2 className="w-3 h-3 mr-2" />Clear</Button>}
+                </div>
+                <table className="w-full text-xs">
+                  <thead className="bg-slate-800/50 text-slate-400 uppercase">
+                    <tr><th className="p-2 text-left">Timestamp</th><th className="p-2 text-left">User</th><th className="p-2 text-left">Event</th><th className="p-2 text-left">Details</th></tr>
+                  </thead>
+                  <tbody>
+                    {loginAudit.map((log, i) => (
+                      <tr key={i} className="border-b border-slate-800">
+                        <td className="p-2 text-slate-500">{log.ts || log.timestamp}</td>
+                        <td className="p-2 font-bold text-slate-300">{log.username}</td>
+                        <td className="p-2"><Badge className={log.event === 'SUCCESS' ? 'bg-emerald-500/20 text-emerald-400' : log.event === 'FAIL' ? 'bg-red-500/20 text-red-400' : 'bg-slate-500/20 text-slate-400'}>{log.event}</Badge></td>
+                        <td className="p-2 text-slate-500">{log.details}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </TabsContent>
+
+              {/* System Audit Tab */}
+              <TabsContent value="system-log" className="mt-0">
+                <div className="flex justify-between items-center mb-4">
+                  <h4 className="text-sm font-bold text-slate-300">System Audit Log (Patient Data Changes)</h4>
+                  {isAdmin && <Button size="sm" variant="destructive" onClick={handleClearSystemAudit}><Trash2 className="w-3 h-3 mr-2" />Clear</Button>}
+                </div>
+                <table className="w-full text-xs">
+                  <thead className="bg-slate-800/50 text-slate-400 uppercase">
+                    <tr><th className="p-2 text-left">Timestamp</th><th className="p-2 text-left">Patient ID</th><th className="p-2 text-left">Action</th><th className="p-2 text-left">Field</th><th className="p-2 text-left">Old</th><th className="p-2 text-left">New</th><th className="p-2 text-left">User</th></tr>
+                  </thead>
+                  <tbody>
+                    {systemAudit.map((log, i) => (
+                      <tr key={i} className="border-b border-slate-800">
+                        <td className="p-2 text-slate-500">{log.timestamp?.slice(0, 16)}</td>
+                        <td className="p-2 font-mono text-slate-400 text-[10px]">{log.patient_id}</td>
+                        <td className="p-2"><Badge className="bg-blue-500/20 text-blue-400">{log.action}</Badge></td>
+                        <td className="p-2 font-bold text-slate-300">{log.field}</td>
+                        <td className="p-2 text-red-400 max-w-[100px] truncate">{log.old_value}</td>
+                        <td className="p-2 text-emerald-400 max-w-[100px] truncate">{log.new_value}</td>
+                        <td className="p-2 text-slate-500">{log.user}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </TabsContent>
+            </ScrollArea>
+          </Tabs>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAdminModalOpen(false)}>Close</Button>
+            <Button onClick={loadAdminData} disabled={adminLoading}>{adminLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4 mr-2" />}Refresh</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
