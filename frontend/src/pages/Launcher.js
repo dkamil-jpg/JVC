@@ -83,7 +83,7 @@ const Launcher = () => {
             {/* Analytics */}
             <div
               data-testid="launcher-reports-btn"
-              onClick={() => navigate('/login?mode=reports')}
+              onClick={handleReportsClick}
               className="group relative overflow-hidden rounded-3xl bg-slate-900/80 border border-slate-800 p-10 w-full md:w-80 cursor-pointer transition-all duration-300 hover:shadow-[0_0_30px_rgba(139,92,246,0.4)] hover:border-violet-500 transform hover:-translate-y-2"
             >
               <div className="absolute inset-0 bg-gradient-to-b from-violet-900/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
