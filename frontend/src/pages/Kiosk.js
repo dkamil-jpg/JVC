@@ -460,10 +460,43 @@ const Kiosk = () => {
       {/* Header */}
       <div className="p-4 md:p-6 border-b border-slate-800 flex justify-between items-center bg-slate-900/50 backdrop-blur shrink-0">
         <h1 className="text-xl md:text-2xl font-bold text-emerald-500 tracking-wide">Patient Check-In</h1>
-        <Button data-testid="kiosk-exit-btn" variant="ghost" onClick={() => navigate('/')} className="text-slate-500 hover:text-white">
-          Exit
-        </Button>
+        <div className="flex items-center gap-2">
+          {isKioskMode && !isFullscreen && (
+            <Button variant="ghost" onClick={enterFullscreen} className="text-slate-500 hover:text-white">
+              <Maximize className="w-5 h-5" />
+            </Button>
+          )}
+          <Button data-testid="kiosk-exit-btn" variant="ghost" onClick={handleExitAttempt} className="text-slate-500 hover:text-white">
+            {isKioskMode ? <Lock className="w-5 h-5" /> : 'Exit'}
+          </Button>
+        </div>
       </div>
+
+      {/* PIN Modal for kiosk mode exit */}
+      {showPinModal && (
+        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
+          <div className="glass-panel p-8 rounded-2xl max-w-sm w-full text-center">
+            <Lock className="w-12 h-12 text-violet-500 mx-auto mb-4" />
+            <h3 className="text-xl font-bold text-white mb-2">Exit Kiosk Mode</h3>
+            <p className="text-slate-400 text-sm mb-6">Enter PIN to unlock</p>
+            <Input
+              type="password"
+              placeholder="Enter PIN"
+              value={pinInput}
+              onChange={(e) => setPinInput(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handlePinSubmit()}
+              className="text-center text-2xl tracking-widest bg-slate-900 border-slate-700 mb-4"
+              maxLength={6}
+              autoFocus
+            />
+            {pinError && <p className="text-red-400 text-sm mb-4">{pinError}</p>}
+            <div className="flex gap-4">
+              <Button variant="outline" onClick={() => setShowPinModal(false)} className="flex-1">Cancel</Button>
+              <Button onClick={handlePinSubmit} className="flex-1 bg-violet-600 hover:bg-violet-700">Unlock</Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="flex-1 overflow-y-auto">
         {/* Step 1: Identification */}
