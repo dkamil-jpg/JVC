@@ -854,6 +854,24 @@ async def kiosk_register(data: KioskRegistration):
         await db.patients.insert_one(patient_data)
         await log_system_event("KIOSK_REGISTER", f"New patient registered via kiosk", "KIOSK", patient_id, "Registration", "", f"{data.first_name} {data.last_name}")
     
+    # Save consent record with signatures
+    if data.consent_data_processing or data.consent_medical_disclaimer:
+        consent_record = {
+            "patient_id": patient_id,
+            "timestamp": now.isoformat(),
+            "consent_data_processing": data.consent_data_processing,
+            "consent_medical_disclaimer": data.consent_medical_disclaimer,
+            "signature_data_processing": data.signature_data_processing,
+            "signature_medical_disclaimer": data.signature_medical_disclaimer,
+            "alerts_declared": data.alerts,
+            "conditions_declared": data.conditions,
+            "medications_declared": data.medications,
+            "allergies_declared": data.allergies or "NKDA",
+            "reason_declared": data.reason
+        }
+        await db.consents.insert_one(consent_record)
+        await log_system_event("CONSENT_SIGNED", f"Patient signed consents", "KIOSK", patient_id)
+    
     if not data.skip_queue:
         await db.queue.delete_one({"patient_id": patient_id, "date": today})
         
