@@ -699,6 +699,83 @@ const StaffPortal = () => {
         </DialogContent>
       </Dialog>
 
+      {/* Consents Modal - View patient signed consents and signatures */}
+      <Dialog open={consentsModalOpen} onOpenChange={setConsentsModalOpen}>
+        <DialogContent className="bg-slate-900 border-slate-800 max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileSignature className="w-5 h-5 text-emerald-500" />
+              Signed Consents - {selectedPatient?.name}
+            </DialogTitle>
+          </DialogHeader>
+          <ScrollArea className="flex-1">
+            {patientConsents.length === 0 ? (
+              <div className="text-center py-8 text-slate-500">No consent records found for this patient</div>
+            ) : (
+              <div className="space-y-6">
+                {patientConsents.map((consent, idx) => (
+                  <div key={idx} className="glass-panel p-4 rounded-xl border border-slate-700">
+                    <div className="flex justify-between items-start mb-4">
+                      <div>
+                        <h4 className="font-bold text-white">Consent Record #{patientConsents.length - idx}</h4>
+                        <p className="text-xs text-slate-500">{consent.timestamp?.replace('T', ' ').slice(0, 19)}</p>
+                      </div>
+                      <div className="flex gap-2">
+                        {consent.consent_data_processing && <Badge className="bg-emerald-500/20 text-emerald-400">Data Processing</Badge>}
+                        {consent.consent_medical_disclaimer && <Badge className="bg-blue-500/20 text-blue-400">Medical Disclaimer</Badge>}
+                      </div>
+                    </div>
+                    
+                    {/* Declared information at time of consent */}
+                    <div className="grid grid-cols-2 gap-4 mb-4 text-xs">
+                      <div>
+                        <span className="text-slate-500">Reason:</span>
+                        <span className="text-slate-300 ml-2">{consent.reason_declared || '-'}</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-500">Alerts:</span>
+                        <span className="text-red-400 ml-2">{consent.alerts_declared || 'None'}</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-500">Conditions:</span>
+                        <span className="text-slate-300 ml-2">{consent.conditions_declared || '-'}</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-500">Allergies:</span>
+                        <span className="text-red-400 ml-2">{consent.allergies_declared || 'NKDA'}</span>
+                      </div>
+                      <div className="col-span-2">
+                        <span className="text-slate-500">Medications:</span>
+                        <span className="text-slate-300 ml-2">{consent.medications_declared || '-'}</span>
+                      </div>
+                    </div>
+
+                    {/* Signatures */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {consent.signature_data_processing && (
+                        <div className="border border-slate-700 rounded-lg p-2">
+                          <p className="text-xs text-emerald-400 mb-2">Data Processing Consent Signature:</p>
+                          <img src={consent.signature_data_processing} alt="Data consent signature" className="w-full h-24 object-contain bg-slate-950 rounded" />
+                        </div>
+                      )}
+                      {consent.signature_medical_disclaimer && (
+                        <div className="border border-slate-700 rounded-lg p-2">
+                          <p className="text-xs text-blue-400 mb-2">Medical Disclaimer Signature:</p>
+                          <img src={consent.signature_medical_disclaimer} alt="Medical disclaimer signature" className="w-full h-24 object-contain bg-slate-950 rounded" />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </ScrollArea>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConsentsModalOpen(false)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Admin/Manager Panel Modal */}
       <Dialog open={adminModalOpen} onOpenChange={setAdminModalOpen}>
         <DialogContent className="bg-slate-900 border-slate-800 max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
