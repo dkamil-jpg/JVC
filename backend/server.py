@@ -114,6 +114,11 @@ class KioskRegistration(BaseModel):
     procedures: str = ""
     alerts: str = ""
     skip_queue: bool = False
+    # Consent signatures (base64 images)
+    consent_data_processing: bool = False
+    consent_medical_disclaimer: bool = False
+    signature_data_processing: Optional[str] = None  # base64 image
+    signature_medical_disclaimer: Optional[str] = None  # base64 image
 
 class PasswordVerify(BaseModel):
     password: str
