@@ -1,0 +1,1753 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+ <title>Just Vitality System </title>
+ <script src="https://cdn.tailwindcss.com"></script>
+ <!-- Chart.js for Analytics -->
+ <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+ <script>
+  tailwind.config = {
+   darkMode: 'class',
+   theme: {
+    extend: {
+     colors: { primary: { 500: '#3b82f6', 600: '#2563eb' } },
+     boxShadow: {
+      'glow': '0 0 20px rgba(59, 130, 246, 0.5)',
+      'glow-green': '0 0 20px rgba(16, 185, 129, 0.5)',
+      'glow-purple': '0 0 20px rgba(168, 85, 247, 0.5)'
+     }
+    }
+   }
+  }
+ </script>
+ <style>
+  :root {
+   --bg-body: #f3f4f6; --bg-panel: #ffffff; --border-color: #e5e7eb;
+   --text-main: #111827; --text-muted: #6b7280; --sidebar-bg: #ffffff;
+  }
+  .dark {
+   --bg-body: #0f111a; --bg-panel: #1b1f2b; --border-color: #2d3748;
+   --text-main: #e2e8f0; --text-muted: #9ca3af; --sidebar-bg: #161922;
+  }
+  body { background-color: var(--bg-body); color: var(--text-main); font-family: 'Segoe UI', sans-serif; transition: 0.3s; }
+  @media (min-width: 769px) { body { overflow: hidden; } }
+  
+  .glass-panel { background-color: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 0.75rem; transition: 0.3s; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+  .input-field { background-color: var(--bg-body); border: 1px solid var(--border-color); color: var(--text-main); padding: 0.75rem; border-radius: 0.5rem; width: 100%; outline: none; transition: border-color 0.2s; }
+  .input-field:focus { border-color: #3b82f6; ring: 2px; ring-color: #3b82f6; }
+  
+  .sidebar { background-color: var(--sidebar-bg); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; z-index: 40; }
+  .border-theme { border-color: var(--border-color); }
+  
+  .btn { padding: 0.75rem 1.5rem; border-radius: 0.5rem; font-weight: 600; transition: all 0.2s; white-space: nowrap; text-align: center; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(100%); }
+  .btn-primary { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; border: none; }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
+  .btn-secondary { background-color: var(--border-color); color: var(--text-main); }
+  .btn-success { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; }
+  
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg-body); }
+  ::-webkit-scrollbar-thumb { background: #4a5568; border-radius: 3px; }
+  
+  @media (max-width: 768px) { 
+   .sidebar { position: fixed; top: 3.5rem; bottom: 0; left: 0; width: 100%; transform: translateX(-100%); transition: 0.3s ease-in-out; overscroll-behavior: contain; } 
+   .sidebar.open { transform: translateX(0); box-shadow: 10px 0 15px -3px rgba(0, 0, 0, 0.5); } 
+   
+   .grid-cols-2 { grid-template-columns: 1fr; }
+   .md\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+   .md\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+   .mobile-btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; width: 100%; }
+  }
+  @media (min-width: 769px) { 
+   .sidebar { width: 340px; } 
+   .mobile-btn-grid { display: flex; gap: 0.5rem; }
+  }
+
+  .app-footer { padding: 1rem; text-align: center; font-size: 0.75rem; color: var(--text-muted); width: 100%; margin-top: auto; }
+  .app-footer a { color: #3b82f6; text-decoration: none; font-weight: 500; }
+  .app-footer a:hover { text-decoration: underline; }
+
+  /* --- ANALYTICS MODULE STYLES --- */
+  #heatmapGrid {
+   display: grid;
+   gap: 2px;
+  }
+  .hm-cell {
+   border-radius: 4px;
+   height: 30px;
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   font-size: 10px;
+   color: transparent; 
+   transition: all 0.2s;
+  }
+  .hm-cell:hover { 
+   filter: brightness(1.3); 
+   color: white; 
+   z-index: 10; 
+   cursor: default; 
+  }
+  .hm-header {
+   font-size: 10px;
+   font-weight: bold;
+   text-transform: uppercase;
+   text-align: center;
+   padding: 4px;
+   color: var(--text-muted);
+  }
+  
+  /* PRINT STYLES */
+  @media print {
+   body { 
+    background-color: white !important; 
+    color: black !important; 
+    overflow: visible !important; 
+    -webkit-print-color-adjust: exact !important; 
+    print-color-adjust: exact !important;
+   }
+   #viewLauncher, #viewLogin, #viewStaff, #viewKiosk, #messageModal, #modalDeleteConfirm { display: none !important; }
+   
+   #viewReports {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    height: auto !important;
+    background-color: white !important;
+    overflow: visible !important;
+   }
+
+   #reportControls, #btnReportExit { display: none !important; }
+   
+   .glass-panel {
+    box-shadow: none !important;
+    border: 1px solid #ddd !important;
+    background-color: white !important;
+    color: black !important;
+    page-break-inside: avoid;
+    margin-bottom: 20px;
+   }
+   .text-white, .text-gray-400, .text-gray-300 { color: black !important; }
+   .text-muted { color: #555 !important; }
+   
+   .hm-cell {
+     color: black !important; 
+     border: 1px solid #ccc;
+     font-weight: bold;
+   }
+   .hm-header { color: black !important; }
+   
+   canvas { max-width: 100% !important; max-height: 400px !important; }
+  }
+ </style>
+</head>
+<body onload="initApp()">
+
+ <!-- 1. LAUNCHER -->
+ <div id="viewLauncher" class="fixed inset-0 z-50 bg-[#0f111a] flex flex-col overflow-y-auto">
+  <div class="flex-1 flex flex-col items-center justify-center p-6">
+   <div class="max-w-6xl w-full text-center">
+    <h1 class="text-5xl md:text-7xl font-bold text-white mb-4 tracking-tight">Just Vitality <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-600">Clinic</span></h1>
+    <p class="text-gray-400 mb-16 text-xl tracking-wide">Advanced Clinical Management</p>
+    
+    <div class="flex flex-col md:flex-row gap-8 justify-center items-stretch px-4">
+     <!-- STAFF -->
+     <div id="btnLauncherStaff" onclick="showLogin('STAFF')" class="group relative overflow-hidden rounded-3xl bg-[#1b1f2b] border border-[#2d3748] p-10 w-full md:w-80 cursor-pointer transition-all duration-300 hover:shadow-glow hover:border-blue-500 transform hover:-translate-y-2">
+      <div class="absolute inset-0 bg-gradient-to-b from-blue-900/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+      <div class="relative z-10 flex flex-col items-center h-full justify-center">
+       <div class="p-5 rounded-2xl bg-[#0f111a] mb-6 group-hover:text-blue-400 transition-colors shadow-inner">
+        <svg class="w-16 h-16 text-gray-500 group-hover:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0c0 .884-.956 2-2 2h-1m6 0c1.044 0 2-1.116 2-2"/></svg>
+       </div>
+       <h2 class="text-2xl font-bold text-white mb-2">Staff Portal</h2>
+       <p class="text-gray-500 text-sm font-medium">Administration & Records</p>
+      </div>
+     </div>
+
+      <!-- ANALYTICS -->
+      <div id="btnLauncherReports" onclick="showLogin('REPORTS')" class="group relative overflow-hidden rounded-3xl bg-[#1b1f2b] border border-[#2d3748] p-10 w-full md:w-80 cursor-pointer transition-all duration-300 hover:shadow-glow-purple hover:border-purple-500 transform hover:-translate-y-2">
+      <div class="absolute inset-0 bg-gradient-to-b from-purple-900/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+      <div class="relative z-10 flex flex-col items-center h-full justify-center">
+       <div class="p-5 rounded-2xl bg-[#0f111a] mb-6 group-hover:text-purple-400 transition-colors shadow-inner">
+         <svg class="w-16 h-16 text-gray-500 group-hover:text-purple-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+       </div>
+       <h2 class="text-2xl font-bold text-white mb-2">Clinic Analytics</h2>
+       <p class="text-gray-500 text-sm font-medium">Business Intelligence</p>
+      </div>
+     </div>
+     
+     <!-- KIOSK -->
+     <div id="btnLauncherKiosk" onclick="startKiosk()" class="group relative overflow-hidden rounded-3xl bg-[#1b1f2b] border border-[#2d3748] p-10 w-full md:w-80 cursor-pointer transition-all duration-300 hover:shadow-glow-green hover:border-green-500 transform hover:-translate-y-2">
+      <div class="absolute inset-0 bg-gradient-to-b from-green-900/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+      <div class="relative z-10 flex flex-col items-center h-full justify-center">
+       <div class="p-5 rounded-2xl bg-[#0f111a] mb-6 group-hover:text-green-400 transition-colors shadow-inner">
+        <svg class="w-16 h-16 text-gray-500 group-hover:text-green-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+       </div>
+       <h2 class="text-2xl font-bold text-white mb-2">Patient Check-In</h2>
+       <p class="text-gray-500 text-sm font-medium">Self-Service Registration</p>
+      </div>
+     </div>
+    </div>
+   </div>
+  </div>
+  <div class="app-footer">
+   System by <a href="mailto:dyczkowski.kamil@gmail.com">Kamil Dyczkowski</a> 2026 
+  </div>
+ </div>
+
+ <!-- 2. LOGIN (COMMON) -->
+ <div id="viewLogin" class="hidden fixed inset-0 z-[60] bg-black/90 flex flex-col items-center justify-center p-4">
+  <div class="glass-panel p-8 w-full max-w-sm relative">
+   <button onclick="document.getElementById('viewLogin').classList.add('hidden')" class="absolute top-4 right-4 text-gray-500 hover:text-white">&times;</button>
+   <h2 class="text-2xl font-bold mb-8 text-center text-white" id="loginTitle">Staff Access</h2>
+   <input type="text" id="loginUser" placeholder="Username" class="input-field mb-4 bg-[#161922] border-[#2d3748]">
+   <input type="password" id="loginPass" placeholder="Password" class="input-field mb-8 bg-[#161922] border-[#2d3748]">
+   <button onclick="doLogin()" class="btn btn-primary w-full py-3 text-lg">Login</button>
+  </div>
+  <div class="app-footer mt-8">System by <a href="mailto:dyczkowski.kamil@gmail.com">Kamil Dyczkowski</a> 2026 </div>
+ </div>
+
+ <!-- 3. STAFF PORTAL -->
+ <div id="viewStaff" class="hidden h-screen flex flex-col md:flex-row relative">
+  
+  <div class="md:hidden bg-[#161922] border-b border-[#2d3748] p-4 flex justify-between items-center z-50 shrink-0 h-14">
+    <div class="font-bold text-lg text-white">Just Vitality <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-600">Clinic</span></div>
+    <div class="flex items-center gap-4">
+       <button onclick="goHome()" class="text-xl">🏠</button>
+      <button onclick="toggleTheme()" class="text-xl">🌓</button>
+      <button onclick="toggleSidebar()" class="text-white p-2 border border-gray-700 rounded hover:bg-gray-800">
+       <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <aside id="staffSidebar" class="sidebar pt-0">
+   <div class="p-4 border-b border-theme">
+    <div class="hidden md:flex justify-between items-center mb-2">
+     <div class="flex flex-col">
+       <span class="text-[10px] text-muted uppercase tracking-wider font-bold">Logged In As</span>
+       <div class="flex items-center gap-2">
+         <button onclick="document.getElementById('modalChangePass').classList.remove('hidden')" class="text-left font-bold text-lg text-primary-500 hover:text-blue-400 transition-colors" title="Change Password"><span id="userDisplay">Staff</span></button>
+         <button onclick="logout()" class="text-xs text-red-500 hover:text-red-400 underline ml-2" title="Sign Out">Logout</button>
+       </div>
+     </div>
+     <button onclick="toggleTheme()" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition text-xl" title="Switch Theme">
+      🌓
+     </button>
+    </div>
+    
+    <div class="md:hidden mb-4 p-2 bg-gray-800/50 rounded">
+      <div class="flex justify-between items-center mb-2">
+        <span class="text-xs text-gray-400">User: <span id="userDisplayMobile" class="text-white font-bold">Staff</span></span>
+      </div>
+      <button onclick="logout()" class="text-xs text-red-400 w-full text-left">Sign Out</button>
+    </div>
+
+    <button onclick="goHome()" class="w-full btn btn-secondary mb-2 text-sm flex items-center justify-center gap-2">
+      <span>🏠</span> Home
+    </button>
+
+    <button id="btnAdminPanel" onclick="openAdminPanel()" class="hidden w-full btn btn-primary mb-2 text-sm bg-purple-600 hover:bg-purple-700 border-none">⚙️ Admin Panel</button>
+
+    <div class="flex gap-2">
+     <input type="text" id="searchPatient" onkeyup="renderPatientList()" placeholder="Search..." class="input-field text-sm">
+     <button onclick="loadDashboardData()" class="btn btn-secondary px-3 flex items-center justify-center text-lg hover:text-blue-500 transition-colors" title="Refresh List" id="btnRefresh">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+     </button>
+    </div>
+   </div>
+   <div class="px-4 py-2 border-b border-theme bg-blue-500/10 flex justify-between items-center">
+    <h3 class="text-xs font-bold text-blue-500 uppercase">Waiting Room</h3>
+    <span id="countQueue" class="text-[10px] font-bold bg-blue-500 text-white px-2 py-0.5 rounded-full">0</span>
+   </div>
+   <div id="listQueue" class="flex-shrink-0 max-h-48 overflow-y-auto border-b border-theme"></div>
+   
+   <div onclick="toggleDatabaseList()" class="px-4 py-2 border-b border-theme bg-gray-500/10 flex justify-between items-center cursor-pointer hover:bg-gray-500/20 transition-colors select-none">
+    <h3 class="text-xs font-bold text-muted uppercase">Database (A-Z)</h3>
+    <div class="flex items-center gap-2">
+      <span id="countAll" class="text-[10px] font-bold bg-gray-600 text-white px-2 py-0.5 rounded-full">0</span>
+      <span id="iconDbToggle" class="text-xs text-muted transform transition-transform duration-200">▼</span>
+    </div>
+   </div>
+   <div id="listAll" class="flex-1 overflow-y-auto transition-all duration-300"></div>
+   
+   <div class="p-4 border-t border-theme mt-auto">
+    <div class="app-footer p-0 text-xs">System by <a href="mailto:dyczkowski.kamil@gmail.com">Kamil Dyczkowski</a> 2026 </div>
+   </div>
+  </aside>
+
+  <main class="flex-1 flex flex-col relative h-full" onclick="closeSidebarMobile()">
+   <div id="dashEmpty" class="flex-1 flex flex-col items-center justify-center text-muted">
+    <div class="text-4xl mb-4">🏥</div><p>Select a patient.</p>
+   </div>
+   
+   <div id="dashContent" class="hidden flex-1 flex flex-col h-full overflow-hidden">
+    <div class="p-4 md:p-6 border-b border-theme flex flex-col-reverse md:flex-row justify-between items-start gap-4 bg-gray-50/5 dark:bg-[#161922] shrink-0">
+     <div class="w-full md:w-auto">
+      <h1 id="pName" class="text-2xl font-bold uppercase break-words">Name</h1>
+      <p class="text-xs text-muted font-mono">ID: <span id="pID"></span></p>
+     </div>
+     <div class="w-full md:w-auto mobile-btn-grid">
+      <button onclick="startStaffRegister()" class="btn btn-success text-sm">New Patient</button>
+      <button onclick="showAuditLogs()" class="btn btn-secondary text-sm">Change Log</button>
+      <button onclick="toggleEditMode()" id="btnEditToggle" class="btn btn-secondary text-sm">Edit Profile</button>
+      <button onclick="openVisitModal()" class="btn btn-primary text-sm">New Visit</button>
+     </div>
+    </div>
+
+    <div class="flex-1 overflow-y-auto p-4 md:p-6">
+     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+       <div class="glass-panel p-3 border-l-4 border-blue-500">
+        <h3 class="text-xs text-blue-500 font-bold uppercase mb-1">Reason</h3><p id="pReason" class="text-sm italic">No active visit.</p>
+       </div>
+       <div class="glass-panel p-3 flex items-center justify-between" id="alertTile">
+        <div><h3 class="text-xs font-bold uppercase" id="pAlertLabel">Alerts (Today)</h3><p id="pAlertText" class="text-sm text-muted">None.</p></div>
+        <div id="pAlertIcon" class="text-xl opacity-50">🔔</div>
+       </div>
+       <div class="glass-panel p-3 border-l-4 border-red-500">
+         <label class="text-xs text-red-500 font-bold uppercase">Allergies (Perm)</label>
+         <textarea id="eAllergies" class="input-field h-12 mt-1 bg-transparent border-none resize-none text-sm" readonly></textarea>
+       </div>
+     </div>
+     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <div class="flex flex-col gap-4 h-full">
+        <div class="glass-panel p-3 flex-1 flex flex-col"><label class="text-xs text-muted font-bold uppercase mb-1">Meds (Perm)</label><textarea id="eMeds" class="input-field flex-1 bg-transparent border-none resize-none text-sm" readonly></textarea></div>
+        <div class="glass-panel p-3 flex-1 flex flex-col"><label class="text-xs text-muted font-bold uppercase mb-1">Surgeries</label><textarea id="eSurgeries" class="input-field flex-1 bg-transparent border-none resize-none text-sm" readonly></textarea></div>
+      </div>
+      <div class="flex flex-col gap-4 h-full">
+        <div class="glass-panel p-3 flex-1 flex flex-col"><label class="text-xs text-muted font-bold uppercase mb-1">Conditions</label><textarea id="eConditions" class="input-field flex-1 bg-transparent border-none resize-none text-sm" readonly></textarea></div>
+        <div class="glass-panel p-3 flex-1 flex flex-col">
+         <label class="text-xs text-muted font-bold uppercase mb-1 text-yellow-500">IV History / Notes</label>
+         <textarea id="eProcedures" class="input-field flex-1 resize-none text-sm focus:border-yellow-500 transition-colors" placeholder="Type notes here (Auto-saved)..." onblur="savePatientEdits()"></textarea>
+        </div>
+      </div>
+      <div class="glass-panel p-3 h-full flex flex-col">
+        <h3 class="text-xs text-muted font-bold uppercase mb-2">Contact Details</h3>
+        <div class="text-sm space-y-2 flex-1">
+         <p>📞 <span id="vPhone"></span></p>
+         <p>📧 <span id="vEmail"></span></p>
+         <p>🏠 <span id="vAddress"></span></p>
+         <p class="text-red-400">🆘 <span id="vEmerg"></span></p>
+        </div>
+        <div id="contactEditSection" class="hidden mt-4 pt-4 border-t border-theme space-y-2">
+         <input id="ePhone" class="input-field text-sm" placeholder="Phone">
+         <input id="eEmail" class="input-field text-sm" placeholder="Email">
+         <input id="eStreet" class="input-field text-sm" placeholder="Street">
+         <input id="eCity" class="input-field text-sm" placeholder="City">
+         <input id="eZip" class="input-field text-sm" placeholder="Postcode">
+         <label class="text-xs text-red-500 font-bold mt-2 block">Emergency Contact</label>
+         <div class="grid grid-cols-2 gap-2">
+          <input id="eEmergName" class="input-field text-sm" placeholder="Name">
+          <input id="eEmergPhone" class="input-field text-sm" placeholder="Phone">
+         </div>
+         <button onclick="savePatientEdits()" class="btn btn-success w-full mt-3 text-xs">Save</button>
+         
+         <!-- NEW MANAGER ZONE -->
+         <div class="mt-6 pt-4 border-t border-gray-700">
+          <div class="p-4 border border-red-500/30 rounded bg-red-900/10">
+           <h3 class="text-xs text-red-400 font-bold uppercase mb-2 flex items-center gap-2">
+            <span>🛡️ Manager Zone</span>
+           </h3>
+           <div class="flex gap-2">
+            <button onclick="downloadPatientPDF()" id="btnExportPdf" class="btn btn-secondary text-xs flex-1 flex items-center justify-center gap-2">
+             📄 Export PDF
+            </button>
+            <button onclick="openDeleteModal()" class="btn bg-red-600 hover:bg-red-700 text-white text-xs flex-1 border-none flex items-center justify-center gap-2">
+             🗑️ Delete Record
+            </button>
+           </div>
+          </div>
+         </div>
+         <!-- END MANAGER ZONE -->
+
+        </div>
+      </div>
+     </div>
+     <h3 class="text-muted text-xs font-bold uppercase mb-2 px-1">CONSULTATION HISTORY</h3>
+     <div class="glass-panel overflow-hidden mb-10"><table class="w-full text-left text-sm text-muted"><thead class="bg-gray-500/10 text-xs uppercase"><tr><th class="p-3">Date</th><th class="p-3">Treatment</th><th class="p-3">Notes</th><th class="p-3">Consultant</th></tr></thead><tbody id="historyBody"></tbody></table><div id="historyLoader" class="text-center py-4 hidden">Loading...</div></div>
+    </div>
+   </div>
+  </main>
+ </div>
+
+ <!-- 4. KIOSK -->
+ <div id="viewKiosk" class="hidden fixed inset-0 z-40 bg-[#0f111a] text-gray-200 flex flex-col">
+  <div class="p-4 md:p-6 border-b border-gray-800 flex justify-between items-center bg-[#161922] shrink-0">
+   <h1 class="text-xl md:text-2xl font-bold text-green-500 tracking-wide">Patient Check-In</h1>
+   <button id="btnKioskExit" onclick="exitKiosk()" class="text-gray-500 hover:text-white px-4 py-2 font-medium">Exit</button>
+  </div>
+  
+  <div class="flex-1 overflow-y-auto">
+    <!-- Step 1: ID -->
+    <div id="kioskStep1" class="flex flex-col items-center justify-center p-6 min-h-full">
+     <div class="w-full max-w-md space-y-8">
+      <div class="text-center mb-10">
+       <h2 class="text-lg md:text-xl font-medium text-gray-400 mb-1 tracking-wider uppercase">Welcome to</h2>
+       <h1 class="text-4xl md:text-6xl font-bold text-white mb-2 tracking-tight">Just Vitality <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-600">Clinic</span></h1>
+      </div>
+      <div class="space-y-4">
+       <p class="text-center text-gray-500 text-sm mb-2 uppercase tracking-wide">Please identify yourself</p>
+       <input type="text" id="kFirst" placeholder="First Name" class="input-field text-center text-xl uppercase bg-[#1b1f2b] p-4 border-[#2d3748] focus:border-blue-500">
+       <input type="text" id="kLast" placeholder="Last Name" class="input-field text-center text-xl uppercase bg-[#1b1f2b] p-4 border-[#2d3748] focus:border-blue-500">
+       <div class="pt-2"><label class="block text-xs text-gray-500 mb-2 ml-1 text-center">DATE OF BIRTH</label>
+        <div class="grid grid-cols-3 gap-3">
+         <input type="number" id="kDay" placeholder="DD" class="input-field text-center text-xl bg-[#1b1f2b] p-4 border-[#2d3748]" maxlength="2">
+         <input type="number" id="kMonth" placeholder="MM" class="input-field text-center text-xl bg-[#1b1f2b] p-4 border-[#2d3748]" maxlength="2">
+         <input type="number" id="kYear" placeholder="YYYY" class="input-field text-center text-xl bg-[#1b1f2b] p-4 border-[#2d3748]" maxlength="4">
+        </div>
+       </div>
+       <input type="text" id="kPostcode" placeholder="Postcode (e.g. SW1A 1AA)" class="input-field text-center text-xl uppercase bg-[#1b1f2b] p-4 border-[#2d3748] focus:border-blue-500 mt-4">
+      </div>
+      <button onclick="kioskIdentify()" class="btn btn-success w-full py-4 text-xl mt-6 shadow-lg shadow-green-900/40 hover:shadow-green-900/60 transform hover:-translate-y-1 transition-all">Next Step &rarr;</button>
+     </div>
+    </div>
+
+    <!-- Step 2: Contact -->
+    <div id="kioskStep2" class="hidden container mx-auto max-w-3xl p-4 md:p-6 pb-20">
+     <div id="welcomeBanner" class="bg-blue-900/20 border border-blue-800 p-6 rounded-xl mb-8 hidden"><h3 class="text-xl font-bold text-blue-400 mb-1">Welcome Back, <span id="wbName"></span>!</h3><p class="text-sm text-gray-400">Please verify your details below.</p></div>
+     <div class="space-y-6">
+      <div class="glass-panel p-6"><h3 class="text-gray-500 text-xs uppercase font-bold mb-4 tracking-wider">Contact Information (Required)</h3>
+       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <input id="kfPhone" placeholder="Phone Number" class="input-field" oninput="validateKioskStep2()">
+        <input id="kfEmail" placeholder="Email Address" class="input-field" oninput="validateKioskStep2()">
+        <input id="kfStreet" placeholder="Street Address" class="input-field" oninput="validateKioskStep2()">
+        <div class="flex gap-2">
+          <input id="kfCity" placeholder="City" class="input-field w-2/3" oninput="validateKioskStep2()">
+          <input id="kfZip" placeholder="Postcode" class="input-field w-1/3" oninput="validateKioskStep2()">
+        </div>
+       </div>
+      </div>
+      
+       <div class="glass-panel p-6 border-l-4 border-red-500/50">
+        <h3 class="text-red-400 text-xs uppercase font-bold mb-4 tracking-wider">Emergency Contact (Required)</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+         <input id="kfEmergName" placeholder="Contact Name" class="input-field" oninput="validateKioskStep2()">
+         <input id="kfEmergPhone" placeholder="Emergency Phone" class="input-field" oninput="validateKioskStep2()">
+        </div>
+      </div>
+
+      <div class="glass-panel p-6 border-l-4 border-green-500"><label class="block text-green-400 font-bold mb-2 text-lg">Reason for Today's Visit (Required)</label><textarea id="kfReason" class="input-field h-24 text-lg bg-[#161922]" placeholder="Briefly describe why you are here..." oninput="validateKioskStep2()"></textarea></div>
+      <button id="btnStep2Next" onclick="goToKioskStep3()" class="btn btn-primary w-full py-4 text-xl font-bold shadow-lg" disabled>Continue to Medical History &rarr;</button>
+     </div>
+    </div>
+
+    <!-- Step 3 (Redesigned with correct mapping) -->
+    <div id="kioskStep3" class="hidden container mx-auto max-w-7xl p-2 md:p-4 pb-24">
+     <div id="returningMedicalBanner" class="bg-yellow-900/20 border border-yellow-800 p-3 rounded-xl mb-4 hidden"><h3 class="text-lg font-bold text-yellow-500">Medical History Review</h3><p class="text-sm text-gray-400">Your previous history is pre-selected. Please confirm or update.</p></div>
+     
+     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+       <!-- COL 1 -->
+       <div class="space-y-4">
+        <!-- 1. TODAY'S HEALTH (ALERTS) -->
+        <div class="glass-panel p-4 border-t-4 border-red-600">
+         <h3 class="font-bold text-white mb-3 uppercase text-sm tracking-wider">1. How do you feel TODAY?</h3>
+         <div class="space-y-2 text-sm">
+          <label class="flex items-center space-x-3 p-2 bg-[#232736] rounded hover:bg-[#2a2f40] cursor-pointer"><input type="checkbox" class="form-checkbox h-5 w-5 text-red-500 rounded alert-check" value="Today: Fever/Flu/Inf"><span class="text-gray-300">Fever, infection, flu-like symptoms?</span></label>
+          <label class="flex items-center space-x-3 p-2 bg-[#232736] rounded hover:bg-[#2a2f40] cursor-pointer"><input type="checkbox" class="form-checkbox h-5 w-5 text-red-500 rounded alert-check" value="Today: Dizzy/Faint"><span class="text-gray-300">Dizzy or fainted in last 48h?</span></label>
+          <label class="flex items-center space-x-3 p-2 bg-[#232736] rounded hover:bg-[#2a2f40] cursor-pointer"><input type="checkbox" class="form-checkbox h-5 w-5 text-red-500 rounded alert-check" value="Today: Unwell"><span class="text-gray-300">Feel unwell right now?</span></label>
+         </div>
+        </div>
+
+        <!-- 2. RECENT HISTORY (ALERTS) -->
+        <div class="glass-panel p-4 border-t-4 border-orange-500">
+         <h3 class="font-bold text-white mb-3 uppercase text-sm tracking-wider">2. Last 24-72 Hours</h3>
+         <div class="grid grid-cols-2 gap-2 text-sm">
+          <label class="flex items-center p-2 bg-[#232736] rounded hover:bg-[#2a2f40] cursor-pointer"><input type="checkbox" class="mr-2 alert-check" value="Recent: Alcohol <24h"> <span class="text-gray-300">Alcohol (24h)</span></label>
+          <label class="flex items-center p-2 bg-[#232736] rounded hover:bg-[#2a2f40] cursor-pointer"><input type="checkbox" class="mr-2 alert-check" value="Recent: Drugs <72h"> <span class="text-gray-300">Drugs (72h)</span></label>
+          <label class="flex items-center p-2 bg-[#232736] rounded hover:bg-[#2a2f40] cursor-pointer"><input type="checkbox" class="mr-2 alert-check" value="Recent: No Food/Fluid <24h"> <span class="text-gray-300">No Food/Fluid</span></label>
+          <label class="flex items-center p-2 bg-[#232736] rounded hover:bg-[#2a2f40] cursor-pointer"><input type="checkbox" class="mr-2 alert-check" value="Recent: Poor Sleep"> <span class="text-gray-300">Poor Sleep</span></label>
+         </div>
+        </div>
+
+        <!-- 3. MEDICAL CONDITIONS (PERMANENT) -->
+         <div class="glass-panel p-4 border-t-4 border-yellow-500">
+         <h3 class="font-bold text-white mb-3 uppercase text-sm tracking-wider">3. Chronic Medical Conditions</h3>
+         <div class="grid grid-cols-2 gap-2 text-sm">
+          <label class="flex items-center p-2 bg-[#232736] rounded hover:bg-[#2a2f40] cursor-pointer"><input type="checkbox" class="mr-2 static-cond-check" value="High/Low BP"> <span class="text-gray-300">High/Low BP</span></label>
+          <label class="flex items-center p-2 bg-[#232736] rounded hover:bg-[#2a2f40] cursor-pointer"><input type="checkbox" class="mr-2 static-cond-check" value="Diabetes"> <span class="text-gray-300">Diabetes</span></label>
+          <label class="flex items-center p-2 bg-[#232736] rounded hover:bg-[#2a2f40] cursor-pointer"><input type="checkbox" class="mr-2 static-cond-check" value="Asthma/Lung"> <span class="text-gray-300">Asthma/Lung</span></label>
+          <label class="flex items-center p-2 bg-[#232736] rounded hover:bg-[#2a2f40] cursor-pointer"><input type="checkbox" class="mr-2 static-cond-check" value="Epilepsy"> <span class="text-gray-300">Epilepsy</span></label>
+          <label class="flex items-center p-2 bg-[#232736] rounded hover:bg-[#2a2f40] cursor-pointer"><input type="checkbox" class="mr-2 static-cond-check" value="Heart Disease"> <span class="text-gray-300">Heart Disease</span></label>
+          <label class="flex items-center p-2 bg-[#232736] rounded hover:bg-[#2a2f40] cursor-pointer"><input type="checkbox" class="mr-2 static-cond-check" value="Kidney/Liver"> <span class="text-gray-300">Kidney/Liver</span></label>
+          <label class="flex items-center p-2 bg-[#232736] rounded hover:bg-[#2a2f40] cursor-pointer"><input type="checkbox" class="mr-2 static-cond-check" value="Migraines"> <span class="text-gray-300">Migraines</span></label>
+          <label class="flex items-center p-2 bg-[#232736] rounded hover:bg-[#2a2f40] cursor-pointer"><input type="checkbox" class="mr-2 static-cond-check" value="G6PD Deficiency"> <span class="text-gray-300">G6PD Def.</span></label>
+          <label class="flex items-center p-2 bg-[#232736] rounded hover:bg-[#2a2f40] cursor-pointer"><input type="checkbox" class="mr-2 static-cond-check" value="Anxiety/Panic"> <span class="text-gray-300">Anxiety</span></label>
+         </div>
+         <input id="kfConditionsExtra" placeholder="Other conditions..." class="input-field mt-3 text-sm bg-[#161922]">
+        </div>
+        
+         <!-- 4. SKIN & VEINS (MAPPED TO CONDITIONS) -->
+        <div class="glass-panel p-4 border-t-4 border-gray-500">
+          <h3 class="font-bold text-white mb-3 uppercase text-sm tracking-wider">4. Skin & Veins</h3>
+          <div class="space-y-2 text-sm">
+           <label class="flex items-center gap-3"><input type="checkbox" class="static-cond-check" value="Skin Infection/Rash"> <span class="text-gray-300">Skin infection, rash, redness on arms?</span></label>
+           <label class="flex items-center gap-3"><input type="checkbox" class="static-cond-check" value="Difficult Veins"> <span class="text-gray-300">Difficult veins / failed cannulations?</span></label>
+          </div>
+        </div>
+       </div>
+
+       <!-- COL 2 -->
+       <div class="space-y-4">
+         
+         <!-- 5. PREGNANCY (MAPPED TO CONDITIONS) -->
+         <div class="glass-panel p-4 border-t-4 border-pink-500">
+          <h3 class="font-bold text-white mb-3 uppercase text-sm tracking-wider">5. Pregnancy</h3>
+          <div class="flex gap-4 text-sm">
+           <label class="flex items-center gap-2"><input type="checkbox" class="static-cond-check" value="Pregnant"> <span class="text-gray-300">Pregnant?</span></label>
+           <label class="flex items-center gap-2"><input type="checkbox" class="static-cond-check" value="Breastfeeding"> <span class="text-gray-300">Breastfeeding?</span></label>
+          </div>
+         </div>
+
+         <!-- 6A. ALLERGIES (MAPPED TO ALLERGIES COL) -->
+         <div class="glass-panel p-4 border-t-4 border-red-500">
+          <h3 class="font-bold text-red-400 mb-3 uppercase text-sm tracking-wider">6a. Allergies</h3>
+          <div class="space-y-2 text-sm mb-3">
+           <label class="flex items-center p-2 bg-[#232736] rounded hover:bg-[#2a2f40] cursor-pointer"><input type="checkbox" class="mr-2 allergy-check" value="Latex/Adhesive"> <span class="text-gray-300">Latex/Adhesive Allergy</span></label>
+           <label class="flex items-center p-2 bg-[#232736] rounded hover:bg-[#2a2f40] cursor-pointer"><input type="checkbox" class="mr-2 allergy-check" value="Anaphylaxis Hx"> <span class="text-gray-300">History of Anaphylaxis</span></label>
+          </div>
+          <input id="kfAllergiesExtra" class="input-field text-sm bg-[#161922]" placeholder="List other allergies (or type 'NKDA')...">
+         </div>
+
+         <!-- 6B. MEDS (MAPPED TO MEDS COL) -->
+         <div class="glass-panel p-4 border-t-4 border-blue-500">
+         <h3 class="font-bold text-blue-400 mb-3 uppercase text-sm tracking-wider">6b. Medications</h3>
+         <div class="space-y-2 text-sm mb-3">
+           <label class="flex items-center p-2 bg-[#232736] rounded hover:bg-[#2a2f40] cursor-pointer"><input type="checkbox" class="mr-2 med-check" value="Blood Thinners"> <span class="text-gray-300">Blood thinners (Aspirin, Warfarin)</span></label>
+           <label class="flex items-center p-2 bg-[#232736] rounded hover:bg-[#2a2f40] cursor-pointer"><input type="checkbox" class="mr-2 med-check" value="Steroids (last 6mo)"> <span class="text-gray-300">Steroids (last 6mo)</span></label>
+         </div>
+         <textarea id="kfMedsList" class="input-field h-16 text-sm bg-[#161922]" placeholder="List regular prescription meds & supplements..."></textarea>
+        </div>
+
+        <!-- 7. IV HISTORY (MAPPED TO PROCEDURES/NOTES) -->
+        <div class="glass-panel p-4 border-t-4 border-gray-500">
+          <h3 class="font-bold text-white mb-3 uppercase text-sm tracking-wider">7. IV Therapy History</h3>
+          <div class="flex flex-col gap-2 text-sm">
+           <label class="flex items-center gap-3"><input type="checkbox" class="iv-check" value="IV: Fainted Before"> <span class="text-gray-300">Fainted/Unwell during IVs?</span></label>
+           <label class="flex items-center gap-3"><input type="checkbox" class="iv-check" value="IV: Bruise Easily"> <span class="text-gray-300">Bruise/Bleed easily?</span></label>
+           <label class="flex items-center gap-3"><input type="checkbox" class="iv-check" value="IV: Complications"> <span class="text-gray-300">Pain/Swelling/Leakage history?</span></label>
+          </div>
+        </div>
+        
+        <!-- NEW: SURGERIES (MAPPED TO SURGERIES COL) -->
+        <div class="glass-panel p-4 border-t-4 border-gray-500">
+          <h3 class="font-bold text-white mb-3 uppercase text-sm tracking-wider">8. Past Surgeries</h3>
+          <textarea id="kfSurgeries" class="input-field h-16 text-sm bg-[#161922]" placeholder="List major surgeries (if any)..."></textarea>
+        </div>
+
+        <!-- 9. DECLARATIONS -->
+        <div class="glass-panel p-4 border border-green-500/30 bg-green-900/10">
+          <h3 class="font-bold text-green-400 mb-3 uppercase text-sm tracking-wider">Declarations (Required)</h3>
+          <div class="space-y-3 text-sm">
+           <label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" class="consent-check" onchange="validateConsents()"><span class="text-gray-300">I understand treatment may be cancelled if unsafe.</span></label>
+           <label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" class="consent-check" onchange="validateConsents()"><span class="text-gray-300">I agree to follow staff instructions.</span></label>
+           <label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" class="consent-check" onchange="validateConsents()"><span class="text-gray-300">I consent to emergency measures if unwell.</span></label>
+           <label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" class="consent-check" onchange="validateConsents()"><span class="text-gray-300">Confirm info is true & consent to data processing.</span></label>
+          </div>
+        </div>
+       </div>
+     </div>
+
+     <button id="btnFinalSubmit" onclick="submitFullKiosk()" class="btn btn-success w-full py-5 text-xl font-bold shadow-xl shadow-green-900/40 hover:shadow-green-900/60 transform hover:-translate-y-1 transition-all mt-6" disabled>Submit & Check-In</button>
+    </div>
+  </div>
+ </div>
+
+ <!-- 5. CLINIC ANALYTICS -->
+ <div id="viewReports" class="hidden fixed inset-0 z-50 bg-[#0f111a] flex flex-col text-white">
+   <!-- Header -->
+   <div id="reportControls" class="p-4 border-b border-[#2d3748] bg-[#161922] flex flex-col md:flex-row justify-between items-center gap-4 shrink-0">
+    <div class="flex items-center gap-2">
+      <h2 class="text-xl font-bold text-white">Just Vitality <span class="text-blue-500">Clinic</span> Analytics</h2>
+      <span class="text-xs bg-purple-900/30 text-purple-200 px-2 py-1 rounded border border-purple-500/30">Read Only</span>
+    </div>
+    <div class="flex items-center gap-3 w-full md:w-auto flex-wrap justify-end">
+      <div class="flex gap-1">
+       <button onclick="reportLogic.setRange('week')" class="btn btn-secondary py-1 px-3 text-xs bg-gray-700 hover:bg-gray-600 border-none">This Week</button>
+       <button onclick="reportLogic.setRange('month')" class="btn btn-secondary py-1 px-3 text-xs bg-gray-700 hover:bg-gray-600 border-none">This Month</button>
+      </div>
+      
+      <input type="date" id="repStartDate" class="input-field py-2 text-sm w-auto">
+      <span class="text-gray-500">-</span>
+      <input type="date" id="repEndDate" class="input-field py-2 text-sm w-auto">
+      <button onclick="reportLogic.loadReportData()" class="btn btn-primary text-sm shadow-glow">Generate</button>
+      <button onclick="window.print()" class="btn btn-secondary text-sm flex items-center gap-2">
+       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+       Print PDF
+      </button>
+      <button id="btnReportExit" onclick="exitReports()" class="btn bg-red-500/10 text-red-400 border border-red-500/30 text-sm hover:bg-red-500 hover:text-white ml-2">Exit</button>
+    </div>
+   </div>
+
+   <!-- Dashboard Content -->
+   <div class="flex-1 overflow-y-auto p-6">
+    <div class="max-w-7xl mx-auto space-y-6">
+      <!-- KPI Cards -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+       <div class="glass-panel p-4 flex flex-col items-center justify-center border-t-4 border-blue-500">
+         <span class="text-xs text-gray-500 uppercase font-bold tracking-wider">Total Visits</span>
+         <span id="kpiTotalVisits" class="text-3xl font-bold text-white mt-2">-</span>
+       </div>
+       <div class="glass-panel p-4 flex flex-col items-center justify-center border-t-4 border-green-500">
+         <span class="text-xs text-gray-500 uppercase font-bold tracking-wider">New Patients</span>
+         <span id="kpiNewPatients" class="text-3xl font-bold text-white mt-2">-</span>
+       </div>
+       <div class="glass-panel p-4 flex flex-col items-center justify-center border-t-4 border-purple-500">
+         <span class="text-xs text-gray-500 uppercase font-bold tracking-wider">Busiest Day</span>
+         <span id="kpiTopDay" class="text-lg font-bold text-white mt-2 text-center">-</span>
+       </div>
+       <div class="glass-panel p-4 flex flex-col items-center justify-center border-t-4 border-yellow-500">
+         <span class="text-xs text-gray-500 uppercase font-bold tracking-wider">Top Treatment</span>
+         <span id="kpiTopTreatment" class="text-lg font-bold text-white mt-2 text-center">-</span>
+       </div>
+      </div>
+
+      <!-- Heatmap -->
+      <div class="glass-panel p-6">
+       <h3 id="heatmapTitle" class="text-lg font-bold text-gray-300 mb-4 flex items-center gap-2">
+         <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+         Clinic Traffic Intensity (08:00 - 20:00)
+       </h3>
+       <!-- Headers -->
+       <div id="heatmapGrid" class="w-full overflow-x-auto">
+         <div class="text-gray-500 text-xs text-center p-4">Loading Heatmap...</div>
+       </div>
+      </div>
+
+      <!-- Charts & Lists -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pb-10">
+       <div class="glass-panel p-6 flex flex-col">
+         <h3 class="text-sm font-bold text-gray-300 uppercase mb-4 w-full text-left">Top 10 Patients (Activity)</h3>
+         <div class="flex-1 overflow-y-auto">
+          <table class="w-full text-left text-xs text-gray-400">
+           <thead class="bg-gray-800 text-gray-500 uppercase">
+            <tr><th class="p-2">Name</th><th class="p-2 text-right">Visits</th></tr>
+           </thead>
+           <tbody id="topPatientsList">
+            <tr><td colspan="2" class="p-4 text-center">Loading...</td></tr>
+           </tbody>
+          </table>
+         </div>
+       </div>
+       
+       <div class="glass-panel p-6 flex flex-col">
+         <h3 class="text-sm font-bold text-gray-300 uppercase mb-4">Patient Geo-Analysis (Top Cities)</h3>
+         <div class="w-full h-64 relative">
+          <canvas id="chartGeo"></canvas>
+         </div>
+       </div>
+      </div>
+    </div>
+   </div>
+ </div>
+
+ <!-- MODALS -->
+ <div id="modalAdmin" class="hidden fixed inset-0 z-[70] bg-black/80 flex items-center justify-center p-4">
+  <div class="glass-panel p-6 w-full max-w-2xl flex flex-col h-3/4">
+    <div class="flex justify-between items-center mb-4">
+     <h2 id="admPanelTitle" class="text-xl font-bold">Admin Panel</h2>
+     <button onclick="document.getElementById('modalAdmin').classList.add('hidden')" class="text-red-400">Close</button>
+    </div>
+
+    <!-- Tabs -->
+    <div class="flex gap-2 mb-4 border-b border-gray-700 pb-3">
+     <button id="admTabBtnAccounts" onclick="setAdminTab('accounts')" class="btn btn-secondary text-sm">Accounts</button>
+     <button id="admTabBtnLoginAudit" onclick="setAdminTab('loginAudit')" class="btn btn-secondary text-sm">Login Audit</button>
+    </div>
+
+    <!-- TAB 1: ACCOUNTS -->
+    <div id="admTabAccounts" class="flex-1 flex flex-col min-h-0">
+     <div id="admAddSection" class="bg-gray-800 p-4 rounded mb-4 grid grid-cols-4 gap-2">
+      <input id="admNewUser" placeholder="New Username" class="input-field col-span-1 text-sm">
+      <input id="admNewPass" placeholder="Password" class="input-field col-span-1 text-sm">
+      <select id="admRole" class="input-field col-span-1 text-sm bg-[#161922]">
+       <option value="STAFF">STAFF</option><option value="MANAGER">MANAGER</option><option value="ADMIN">ADMIN</option>
+      </select>
+      <button onclick="adminAddUser()" class="btn btn-success text-sm col-span-1">Add User</button>
+     </div>
+
+     <div class="flex-1 overflow-y-auto min-h-0">
+      <table class="w-full text-left text-sm text-gray-300">
+       <thead class="bg-gray-700 text-xs uppercase">
+        <tr>
+         <th class="p-2">Username</th>
+         <th class="p-2">Role</th>
+         <th class="p-2">Status</th>
+         <th class="p-2">Last Login</th>
+         <th class="p-2">Action</th>
+        </tr>
+       </thead>
+       <tbody id="adminUserList"></tbody>
+      </table>
+     </div>
+
+     <div id="admResetArea" class="hidden mt-4 pt-4 border-t border-gray-700">
+      <p class="text-sm mb-2 text-yellow-400">Reset Password for <span id="admTargetUser" class="font-bold"></span></p>
+      <div class="flex gap-2">
+       <input id="admResetPass" placeholder="New Temporary Password" class="input-field">
+       <button onclick="adminConfirmReset()" class="btn btn-primary">Set Password</button>
+       <button onclick="document.getElementById('admResetArea').classList.add('hidden')" class="btn btn-secondary">Cancel</button>
+      </div>
+      <p class="text-xs text-gray-400 mt-2">Reset also unlocks the account (Active=TRUE).</p>
+     </div>
+    </div>
+
+    <!-- TAB 2: LOGIN AUDIT -->
+    <div id="admTabLoginAudit" class="hidden flex-1 flex flex-col min-h-0">
+     <div class="flex items-center justify-between mb-3">
+      <div class="text-sm text-gray-300">
+       Recent login events (latest first)
+      </div>
+      <div class="flex gap-2">
+       <button onclick="loadLoginAudit()" class="btn btn-secondary text-sm">Refresh</button>
+       <button id="btnClearLoginAudit" onclick="clearLoginAudit()" class="btn btn-danger text-sm">Clear Log</button>
+      </div>
+     </div>
+     <div class="flex-1 overflow-y-auto min-h-0">
+      <table class="w-full text-left text-sm text-gray-300">
+       <thead class="bg-gray-700 text-xs uppercase">
+        <tr>
+         <th class="p-2">Time</th>
+         <th class="p-2">Username</th>
+         <th class="p-2">Event</th>
+         <th class="p-2">Details</th>
+        </tr>
+       </thead>
+       <tbody id="loginAuditBody"></tbody>
+      </table>
+     </div>
+    </div>
+  </div>
+ </div>
+
+ <div id="modalChangePass" class="hidden fixed inset-0 z-[65] bg-black/80 flex items-center justify-center p-4">
+  <div class="glass-panel p-8 w-full max-w-sm relative">
+    <button onclick="document.getElementById('modalChangePass').classList.add('hidden')" class="absolute top-4 right-4 text-gray-500 hover:text-white">&times;</button>
+    <h2 class="text-xl font-bold mb-6 text-center">Change Password</h2>
+    <input type="password" id="cpOld" placeholder="Current Password" class="input-field mb-4"><input type="password" id="cpNew" placeholder="New Password (min 5 chars)" class="input-field mb-4"><input type="password" id="cpConfirm" placeholder="Confirm New Password" class="input-field mb-6"><button onclick="doChangePassword()" class="btn btn-primary w-full">Update Password</button>
+  </div>
+ </div>
+
+ <div id="messageModal" class="hidden fixed inset-0 z-[80] bg-black/80 flex items-center justify-center p-4 transition-opacity duration-300">
+  <div class="glass-panel p-6 w-full max-w-sm text-center transform transition-all duration-300 scale-100">
+   <div id="msgIcon" class="text-5xl mb-4"></div><h2 id="msgTitle" class="text-xl font-bold text-white mb-2"></h2><p id="msgBody" class="text-gray-400 mb-6"></p><button onclick="closeMessageModal()" class="btn btn-primary w-full">OK</button>
+  </div>
+ </div>
+
+ <div id="modalNewPatientConfirm" class="hidden fixed inset-0 z-[90] bg-black/90 flex items-center justify-center p-4">
+  <div class="glass-panel p-8 w-full max-w-md text-center border-2 border-yellow-500/50 shadow-glow">
+    <div class="text-6xl mb-4">🤔</div>
+    <h2 class="text-2xl font-bold text-white mb-2">Patient Not Found</h2>
+    <p class="text-gray-300 mb-8 text-lg">We couldn't find your record in the system. <br>Is this your first visit?</p>
+    
+    <div class="flex flex-col gap-3">
+       <button onclick="confirmNewPatient()" class="btn btn-primary py-4 text-lg font-bold shadow-lg">Yes, I am a New Patient</button>
+       <button onclick="document.getElementById('modalNewPatientConfirm').classList.add('hidden')" class="btn btn-secondary py-3 text-sm">No, Check My Details (Typo)</button>
+    </div>
+  </div>
+ </div>
+
+ <div id="modalVisit" class="hidden fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
+  <div class="glass-panel p-6 w-full max-w-lg">
+   <h2 class="text-xl font-bold mb-4">Add Visit</h2>
+   <div class="space-y-4">
+    <input id="vTreatment" placeholder="Treatment" class="input-field"><textarea id="vNotes" placeholder="Notes" class="input-field h-32"></textarea><input id="vConsultant" class="input-field bg-gray-500/20" readonly><div class="flex gap-2"><button onclick="closeVisitModal()" class="btn btn-secondary flex-1">Cancel</button><button onclick="submitVisit()" class="btn btn-primary flex-1">Save</button></div>
+   </div>
+  </div>
+ </div>
+ <div id="modalAudit" class="hidden fixed inset-0 z-[60] bg-black/80 flex items-center justify-center p-4">
+  <div class="glass-panel p-6 w-full max-w-3xl h-3/4 flex flex-col">
+   <div class="flex justify-between items-center mb-4"><h2 class="text-xl font-bold">Change Log</h2><button onclick="closeAuditModal()" class="text-red-400">Close</button></div>
+   <div class="flex-1 overflow-y-auto"><table class="w-full text-left text-sm text-muted"><thead class="bg-gray-500/10 text-xs uppercase"><tr><th class="p-2">Date</th><th class="p-2">Field</th><th class="p-2">Old</th><th class="p-2">New</th><th class="p-2">User</th></tr></thead><tbody id="auditBody"></tbody></table><div id="auditLoader" class="text-center py-4 hidden">Loading...</div></div>
+  </div>
+ </div>
+ <div id="kioskSuccessModal" class="hidden fixed inset-0 z-[70] bg-black/95 flex flex-col items-center justify-center text-center p-8"><div class="text-7xl text-green-500 mb-6 animate-bounce">✅</div><h2 class="text-4xl text-white font-bold mb-4">Checked In!</h2><p class="text-xl text-gray-400">Please take a seat.</p></div>
+ <div id="staffActionModal" class="hidden fixed inset-0 z-[70] bg-black/50 flex items-center justify-center p-4"><div class="glass-panel p-8 text-center border border-green-500 shadow-lg shadow-green-900/50"><div class="text-5xl mb-4 text-green-500">✅</div><h2 class="text-2xl font-bold mb-1">Saved</h2></div></div>
+
+ <!-- DELETE CONFIRMATION MODAL -->
+ <div id="modalDeleteConfirm" class="hidden fixed inset-0 z-[95] bg-black/90 flex items-center justify-center p-4">
+  <div class="glass-panel p-8 w-full max-w-md text-center border-2 border-red-600 shadow-[0_0_30px_rgba(220,38,38,0.3)]">
+    <div class="text-5xl mb-4">⚠️</div>
+    <h2 class="text-2xl font-bold text-white mb-2">Delete Patient Record?</h2>
+    <p class="text-gray-300 mb-6 text-sm">This action is <b>PERMANENT</b> and cannot be undone.<br>All personal data and visit history will be erased.</p>
+    
+    <div class="text-left bg-red-900/20 p-4 rounded border border-red-500/30 mb-6">
+      <label class="flex items-start gap-3 cursor-pointer">
+       <input type="checkbox" id="chkDeleteConsent" class="mt-1 w-5 h-5 text-red-600 rounded bg-gray-800 border-gray-600 focus:ring-red-500" onchange="toggleDeleteBtn()">
+       <span class="text-xs text-gray-300">I understand that this action is irreversible and I take full responsibility.</span>
+      </label>
+      <input type="password" id="delManagerPass" placeholder="Enter Manager Password" class="input-field mt-4 text-sm border-red-500/50 focus:border-red-500" onkeyup="toggleDeleteBtn()">
+    </div>
+
+    <div class="flex gap-3">
+       <button onclick="closeDeleteModal()" class="btn btn-secondary flex-1">Cancel</button>
+       <button id="btnConfirmDelete" onclick="executeDelete()" class="btn bg-red-600 hover:bg-red-700 text-white border-none flex-1 font-bold" disabled>DELETE RECORD</button>
+    </div>
+  </div>
+ </div>
+
+ <script>
+  // --- LOGIC ---
+  // --- MOCK API FOR DEV ---
+  if (typeof google === 'undefined') {
+   window.google = { script: { url: { getLocation: (cb) => cb({ parameter: { mode: '' } }) }, run: { withSuccessHandler: (success) => {
+    const mockDelay = (fn, data) => setTimeout(() => success(data), 600);
+    return {
+     loginUser: (u, p) => mockDelay(success, { success: true, token: "mock_token", username: u, role: "MANAGER" }), 
+     getDashboardData: () => mockDelay(success, { success: true, queue: [], all: [{id:"P1", name:"John", dob:"1990-01-01", lastName:"Doe"}] }),
+     checkPatientExists: (f,l) => mockDelay(success, { status: "SUCCESS", id: "ID", data: {firstName: "John"} }), 
+     processRegistration: () => mockDelay(success, { success: true }),
+     updatePatientFull: () => mockDelay(success, { success: true }),
+     getVisitsHistory: () => mockDelay(success, []),
+     getPatientAudit: () => mockDelay(success, []),
+     saveNewVisit: () => mockDelay(success, { success: true }),
+     changePassword: () => mockDelay(success, { success: true }),
+     adminGetUsers: () => mockDelay(success, { success: true, users: [
+      {username:"ADMIN", role:"ADMIN", active:true, lastLogin:"2023-01-01"},
+      {username:"STAFF", role:"STAFF", active:true, lastLogin:"2023-01-02"},
+      {username:"LOCKED", role:"STAFF", active:false, lastLogin:""}
+     ] }),
+     adminAddUser: () => mockDelay(success, { success: true }),
+     adminResetPassword: () => mockDelay(success, { success: true }),
+     adminSetUserActive: () => mockDelay(success, { success: true }),
+     adminGetLoginAudit: () => mockDelay(success, { success: true, rows: [
+      {ts:"2026-01-10 02:00", username:"STAFF", event:"SUCCESS", details:"Logged in"},
+      {ts:"2026-01-10 02:05", username:"STAFF", event:"LOGOUT", details:"Session ended"}
+     ] }),
+     adminClearLoginAudit: () => mockDelay(success, { success: true }),
+     logSessionEnd: () => mockDelay(success, { success: true }),
+     getReportData: () => mockDelay(success, {
+       success: true,
+       kpi: { total: 120, newP: 15, topDay: "2023-10-15 (22)", topTreat: "Consultation" },
+       heatmap: Array(12).fill(0).map(()=>Array(31).fill(Math.floor(Math.random()*5))),
+       topPatients: [{name:"John Doe", count:5}, {name:"Jane Smith", count:3}],
+       geo: { labels: ["London", "Manchester", "Leeds"], data: [50, 20, 10] },
+       isMonthly: true
+     }),
+     deletePatientRecord: () => mockDelay(success, { success: true }),
+     getPatientPdfBase64: () => mockDelay(success, { success: true, data: "JVBERi0..." }) // Mock PDF
+    };
+   }}}};
+  }
+
+  let appData = { all: [], queue: [] };
+  let currentPatient = null;
+  let editMode = false;
+  let loggedUser = "Staff";
+  let isKioskMode = false;
+  let isStaffRegister = false;
+  let authToken = "";
+  let userRole = "STAFF";
+  let loginTarget = "STAFF"; 
+  
+  let tempKioskData = null;
+
+  function initApp() {
+   authToken = localStorage.getItem('vitToken');
+   loggedUser = localStorage.getItem('vitUser') || "Staff";
+   userRole = localStorage.getItem('vitRole') || "STAFF";
+   
+   // NOTE: Do not pre-load Reports on app start. Reports data is loaded when user opens Reports.
+
+   google.script.url.getLocation(function(location) {
+    if (location.parameter && location.parameter.mode === 'kiosk') {
+     isKioskMode = true;
+     document.getElementById('btnLauncherStaff').classList.add('hidden'); 
+     document.getElementById('btnLauncherReports').classList.add('hidden'); 
+     document.getElementById('btnLauncherKiosk').classList.remove('w-full', 'md:w-64'); 
+     document.getElementById('btnLauncherKiosk').classList.add('w-full', 'max-w-md'); 
+     startKiosk();
+    }
+   });
+   
+   // Initialize global inactivity listeners
+   startInactivityService();
+  }
+
+  function toggleTheme() { document.documentElement.classList.toggle('dark'); }
+  function showMessage(title, body, type = 'info') {
+   const modal = document.getElementById('messageModal');
+   document.getElementById('msgTitle').innerText = title;
+   document.getElementById('msgBody').innerText = body;
+   document.getElementById('msgIcon').innerText = type === 'error' ? '❌' : (type === 'success' ? '✅' : '⚠️');
+   modal.classList.remove('hidden');
+  }
+  function closeMessageModal() { document.getElementById('messageModal').classList.add('hidden'); }
+
+  // AUTH
+  function showLogin(target) { 
+   loginTarget = target;
+   document.getElementById('loginTitle').innerText = target === 'REPORTS' ? 'Analytics Access' : 'Staff Access';
+   
+   if(authToken) {
+    if(loginTarget === 'REPORTS') showReports();
+    else enterStaffDashboard();
+   } else {
+    document.getElementById('viewLogin').classList.remove('hidden'); 
+   }
+  }
+
+  function doLogin() {
+   const u = document.getElementById('loginUser').value;
+   const p = document.getElementById('loginPass').value;
+   const btn = document.querySelector('#viewLogin button');
+   btn.innerText = "Verifying...";
+   
+   google.script.run.withSuccessHandler(res => {
+    btn.innerText = "Login";
+    if(res.success) {
+      authToken = res.token;
+      loggedUser = res.username;
+      userRole = res.role;
+      localStorage.setItem('vitToken', authToken);
+      localStorage.setItem('vitUser', loggedUser);
+      localStorage.setItem('vitRole', userRole);
+      document.getElementById('viewLogin').classList.add('hidden');
+      
+      // Kickstart inactivity timer for new session
+      resetInactivityTimer();
+      
+      if(loginTarget === 'REPORTS') showReports();
+      else enterStaffDashboard();
+    } else {
+      showMessage("Login Failed", res.error, "error");
+    }
+   }).loginUser(u, p);
+  }
+
+  function logout() { 
+    const tokenToClose = authToken;
+    if (tokenToClose && window.google && google.script && google.script.run) {
+     try { google.script.run.logSessionEnd(tokenToClose); } catch (e) {}
+    }
+    authToken = "";
+    localStorage.removeItem('vitToken');
+    document.getElementById('loginUser').value = '';
+    document.getElementById('loginPass').value = '';
+    document.getElementById('viewStaff').classList.add('hidden');
+    document.getElementById('viewReports').classList.add('hidden');
+    document.getElementById('viewLauncher').classList.remove('hidden');
+    document.getElementById('staffSidebar').classList.remove('open');
+  }
+  
+  function goHome() {
+    document.getElementById('viewStaff').classList.add('hidden');
+    document.getElementById('viewReports').classList.add('hidden');
+    document.getElementById('viewLauncher').classList.remove('hidden');
+    document.getElementById('staffSidebar').classList.remove('open');
+  }
+
+  // --- REPORT MODULE LOGIC ---
+  const reportLogic = {
+   charts: {},
+   
+   showReports: function() {
+    document.getElementById('viewLauncher').classList.add('hidden');
+    document.getElementById('viewReports').classList.remove('hidden');
+
+    // Load reports only when the Reports view is opened (prevents 'Unauthorized' popup on cold start).
+    const s = document.getElementById('repStartDate').value;
+    const e = document.getElementById('repEndDate').value;
+    if (!s || !e) this.setRange('month');
+    else this.loadReportData();
+   },
+
+   exitReports: function() {
+     document.getElementById('viewReports').classList.add('hidden');
+     document.getElementById('viewLauncher').classList.remove('hidden');
+     if(this.charts.geo) this.charts.geo.destroy();
+   },
+
+   setRange: function(type) {
+     const now = new Date();
+     let start, end;
+     if (type === 'week') {
+      const day = now.getDay() || 7;
+      if(day !== 1) now.setHours(-24 * (day - 1));
+      start = now;
+      end = new Date(now); end.setDate(now.getDate() + 6);
+     } else {
+      start = new Date(now.getFullYear(), now.getMonth(), 1);
+      end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+     }
+     const fmt = d => d.toISOString().split('T')[0];
+     document.getElementById('repStartDate').value = fmt(start);
+     document.getElementById('repEndDate').value = fmt(end);
+     this.loadReportData();
+   },
+
+   // NEW: Helper for counting up animation
+   animateCounter: function(id, end, duration = 1500) {
+    const obj = document.getElementById(id);
+    if(!obj) return;
+    let start = 0;
+    if (end === 0) { obj.innerText = 0; return; }
+    let startTimestamp = null;
+    const step = (timestamp) => {
+      if (!startTimestamp) startTimestamp = timestamp;
+      const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+      obj.innerText = Math.floor(progress * end);
+      if (progress < 1) window.requestAnimationFrame(step);
+      else obj.innerText = end;
+    };
+    window.requestAnimationFrame(step);
+   },
+
+   loadReportData: function() {
+     const s = document.getElementById('repStartDate').value;
+     const e = document.getElementById('repEndDate').value;
+     
+     const header = document.getElementById('heatmapTitle');
+     header.innerHTML = `<svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Clinic Traffic Intensity (${s} to ${e})`;
+
+     const grid = document.getElementById('heatmapGrid');
+     grid.innerHTML = "<div class='col-span-8 text-center text-sm p-10 animate-pulse text-purple-400'>Analyzing Data...</div>";
+
+     google.script.run.withSuccessHandler(res => {
+      if(!res.success) { showMessage("Error", res.error, "error"); return; }
+      
+      // CHANGED: Use animateCounter instead of direct assignment
+      this.animateCounter('kpiTotalVisits', res.kpi.total);
+      this.animateCounter('kpiNewPatients', res.kpi.newP);
+      
+      document.getElementById('kpiTopDay').innerText = res.kpi.topDay; 
+      document.getElementById('kpiTopTreatment').innerText = res.kpi.topTreat;
+
+      this.renderHeatmap(res.heatmap, res.isMonthly);
+      this.renderCharts(res.topPatients, res.geo); 
+
+     }).getReportData(authToken, s, e);
+   },
+
+   renderHeatmap: function(data, isMonthly) {
+     const grid = document.getElementById('heatmapGrid');
+     grid.innerHTML = "";
+     
+     const numCols = data[0].length; 
+     grid.style.gridTemplateColumns = `60px repeat(${numCols}, 1fr)`;
+     
+     const corner = document.createElement('div');
+     corner.className = "hm-header";
+     grid.appendChild(corner);
+
+     if (isMonthly) {
+      for(let i=1; i<=numCols; i++) {
+        const el = document.createElement('div');
+        el.className = "hm-header";
+        el.innerText = i;
+        grid.appendChild(el);
+      }
+     } else {
+      const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+      days.forEach(d => {
+        const el = document.createElement('div');
+        el.className = "hm-header";
+        el.innerText = d;
+        grid.appendChild(el);
+      });
+     }
+
+     const startHour = 8;
+     data.forEach((row, hIdx) => {
+      const label = document.createElement('div');
+      label.className = "hm-header text-right pr-2";
+      label.innerText = `${String(startHour + hIdx).padStart(2,'0')}:00`;
+      grid.appendChild(label);
+
+      row.forEach(val => {
+        const cell = document.createElement('div');
+        cell.className = "hm-cell";
+        
+        let bg = 'bg-gray-800';
+        if(val > 0) bg = 'bg-blue-900';
+        if(val > 2) bg = 'bg-blue-800';
+        if(val > 5) bg = 'bg-blue-600';
+        if(val > 10) bg = 'bg-blue-400';
+        
+        const opacity = val === 0 ? 0.1 : Math.min(1, 0.2 + (val/10));
+        cell.style.backgroundColor = `rgba(59, 130, 246, ${opacity})`; 
+        
+        cell.innerText = val > 0 ? val : "";
+        cell.title = `${val} visits`;
+        grid.appendChild(cell);
+      });
+     });
+   },
+
+   renderCharts: function(topPatientsData, geoData) {
+     const list = document.getElementById('topPatientsList');
+     list.innerHTML = "";
+     if(!topPatientsData || topPatientsData.length === 0) {
+      list.innerHTML = "<tr><td colspan='2' class='p-4 text-center text-gray-500'>No data available</td></tr>";
+     } else {
+      topPatientsData.forEach(p => {
+        const row = document.createElement('tr');
+        row.className = "border-b border-gray-700 hover:bg-white/5 transition-colors";
+        // CHANGED: Added 'uppercase' class here
+        row.innerHTML = `<td class="p-2 font-medium text-gray-300 uppercase">${p.name}</td><td class="p-2 text-right text-blue-400 font-bold">${p.count}</td>`;
+        list.appendChild(row);
+      });
+     }
+
+     if(this.charts.geo) this.charts.geo.destroy();
+     const textColor = '#9ca3af';
+
+     const ctxG = document.getElementById('chartGeo').getContext('2d');
+     this.charts.geo = new Chart(ctxG, {
+      type: 'bar',
+      data: {
+        labels: geoData.labels,
+        datasets: [{
+         label: 'Patients',
+         data: geoData.data,
+         backgroundColor: '#3b82f6',
+         borderRadius: 4
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        // CHANGED: Added slower animation duration
+        animation: {
+         duration: 2000,
+         easing: 'easeOutQuart'
+        },
+        scales: {
+         x: { ticks: { color: textColor }, grid: { color: '#374151' } },
+         y: { ticks: { color: textColor }, grid: { display: false } }
+        },
+        plugins: { legend: { display: false } }
+      }
+     });
+   }
+  };
+
+  function showReports() { reportLogic.showReports(); }
+  function exitReports() { reportLogic.exitReports(); }
+
+  // --- STANDARD APP FUNCTIONS ---
+  function doChangePassword() {
+    const oldP = document.getElementById('cpOld').value;
+    const newP = document.getElementById('cpNew').value;
+    const confP = document.getElementById('cpConfirm').value;
+    if(newP !== confP) return showMessage("Error", "Passwords do not match", "error");
+    
+    google.script.run.withSuccessHandler(res => {
+     if(res.success) {
+       showMessage("Success", "Password changed. Please login again.", "success");
+       document.getElementById('modalChangePass').classList.add('hidden');
+       logout();
+     } else {
+       showMessage("Error", res.error, "error");
+     }
+    }).changePassword(authToken, oldP, newP);
+  }
+  
+  function enterStaffDashboard() {
+    document.getElementById('userDisplay').innerText = loggedUser;
+    if(document.getElementById('userDisplayMobile')) document.getElementById('userDisplayMobile').innerText = loggedUser;
+    
+    if (userRole === "ADMIN" || userRole === "MANAGER") {
+      const btnAdmin = document.getElementById('btnAdminPanel');
+      btnAdmin.classList.remove('hidden');
+      if (userRole === "MANAGER") btnAdmin.innerText = "🛡️ Manager Panel";
+      else btnAdmin.innerText = "⚙️ Admin Panel";
+    } else {
+      document.getElementById('btnAdminPanel').classList.add('hidden');
+    }
+    
+    document.getElementById('viewLauncher').classList.add('hidden');
+    document.getElementById('viewStaff').classList.remove('hidden');
+    loadDashboardData();
+  }
+  
+  function openAdminPanel() { 
+    document.getElementById('modalAdmin').classList.remove('hidden'); 
+    
+    const addSection = document.getElementById('admAddSection');
+    const title = document.getElementById('admPanelTitle'); 
+
+    if (userRole === "MANAGER") {
+      addSection.classList.add('hidden');
+      if(title) title.innerText = "Manager Panel"; 
+    } else {
+      addSection.classList.remove('hidden');
+      if(title) title.innerText = "Admin Panel"; 
+    }
+
+    // Admin-only action on Login Audit tab
+    const btnClear = document.getElementById('btnClearLoginAudit');
+    if (btnClear) {
+     if (userRole === "ADMIN") btnClear.classList.remove('hidden');
+     else btnClear.classList.add('hidden');
+    }
+
+
+    // Login Audit should be visible only to ADMIN
+    const tabLogin = document.getElementById('admTabBtnLoginAudit');
+    if (tabLogin) {
+     if (userRole === "ADMIN") tabLogin.classList.remove('hidden');
+     else tabLogin.classList.add('hidden');
+    }
+
+    // Default tab
+    setAdminTab('accounts');
+  }
+
+  function setAdminTab(tab) {
+   if (tab === 'loginAudit' && userRole !== 'ADMIN') return;
+   const btnA = document.getElementById('admTabBtnAccounts');
+   const btnL = document.getElementById('admTabBtnLoginAudit');
+   const secA = document.getElementById('admTabAccounts');
+   const secL = document.getElementById('admTabLoginAudit');
+   if (!btnA || !btnL || !secA || !secL) return;
+
+   if (tab === 'loginAudit') {
+    secA.classList.add('hidden');
+    secL.classList.remove('hidden');
+    btnA.classList.remove('btn-primary');
+    btnL.classList.add('btn-primary');
+    loadLoginAudit();
+   } else {
+    secL.classList.add('hidden');
+    secA.classList.remove('hidden');
+    btnL.classList.remove('btn-primary');
+    btnA.classList.add('btn-primary');
+    loadAdminUsers();
+   }
+  }
+  
+  function loadAdminUsers() {
+   const list = document.getElementById('adminUserList');
+   list.innerHTML = "<tr><td colspan='5' class='p-2 text-center text-xs'>Loading...</td></tr>";
+   google.script.run.withSuccessHandler(res => {
+     if (res.success) {
+      list.innerHTML = "";
+      res.users.forEach(u => {
+        const status = (u.active === true || String(u.active).toUpperCase() === 'TRUE') ? 'ACTIVE' : 'LOCKED';
+
+        let actionHtml = "";
+
+        // Role-based controls:
+        // - MANAGER: only Reset (no Disable/Unlock), and Admin row is restricted
+        // - ADMIN: Reset + Unlock/Disable
+        if (userRole === "MANAGER" && u.role === "ADMIN") {
+          actionHtml = `<span class="text-gray-600 text-[10px] italic">Restricted</span>`;
+        } else {
+          actionHtml = `<div class="flex gap-2 items-center">`;
+          actionHtml += `<button class="text-blue-400 hover:underline" onclick="prepReset('${u.username}')">Reset</button>`;
+          if (userRole === "ADMIN") {
+           if (status === 'LOCKED') actionHtml += `<button class="text-green-400 hover:underline" onclick="setUserActive('${u.username}', true)">Unlock</button>`;
+           if (status === 'ACTIVE' && u.role !== 'ADMIN') actionHtml += `<button class="text-red-400 hover:underline" onclick="setUserActive('${u.username}', false)">Disable</button>`;
+          }
+          actionHtml += `</div>`;
+        }
+
+        const badge = status === 'ACTIVE'
+         ? `<span class="px-2 py-0.5 rounded bg-green-500/10 text-green-300 text-[10px]">ACTIVE</span>`
+         : `<span class="px-2 py-0.5 rounded bg-red-500/10 text-red-300 text-[10px]">LOCKED</span>`;
+
+        list.innerHTML += `<tr class="border-b border-gray-700 text-xs">`+
+          `<td class="p-2 font-bold">${u.username}</td>`+
+          `<td class="p-2">${u.role}</td>`+
+          `<td class="p-2">${badge}</td>`+
+          `<td class="p-2 text-gray-500">${u.lastLogin}</td>`+
+          `<td class="p-2">${actionHtml}</td>`+
+         `</tr>`;
+      });
+     } else list.innerHTML = `<tr><td colspan='5' class='p-2 text-red-500'>${res.error}</td></tr>`;
+   }).adminGetUsers(authToken);
+  }
+
+  function setUserActive(username, active) {
+   const msg = active ? `Unlock ${username}?` : `Disable ${username}?`;
+   if (!confirm(msg)) return;
+   google.script.run.withSuccessHandler(res => {
+    if (res.success) {
+     showMessage("Success", "Account updated.", "success");
+     loadAdminUsers();
+    } else {
+     showMessage("Error", res.error, "error");
+    }
+   }).adminSetUserActive(authToken, username, active);
+  }
+
+  function loadLoginAudit() {
+   const body = document.getElementById('loginAuditBody');
+   if (!body) return;
+   body.innerHTML = "<tr><td colspan='4' class='p-2 text-center text-xs'>Loading...</td></tr>";
+   google.script.run.withSuccessHandler(res => {
+    if (!res || !res.success) {
+     body.innerHTML = `<tr><td colspan='4' class='p-2 text-red-500'>${(res && res.error) ? res.error : 'Error'}</td></tr>`;
+     return;
+    }
+    if (!res.rows || res.rows.length === 0) {
+     body.innerHTML = "<tr><td colspan='4' class='p-2 text-center text-xs text-gray-500'>No events</td></tr>";
+     return;
+    }
+    body.innerHTML = "";
+    res.rows.forEach(r => {
+     body.innerHTML += `<tr class='border-b border-gray-700 text-xs'>`+
+      `<td class='p-2 text-gray-400'>${r.ts}</td>`+
+      `<td class='p-2 font-bold'>${r.username}</td>`+
+      `<td class='p-2'>${r.event}</td>`+
+      `<td class='p-2 text-gray-300'>${r.details}</td>`+
+     `</tr>`;
+    });
+   }).adminGetLoginAudit(authToken, 500);
+  }
+
+  function clearLoginAudit() {
+   if (userRole !== 'ADMIN') return;
+   if (!confirm('Clear Login Audit log? This cannot be undone.')) return;
+   google.script.run.withSuccessHandler(res => {
+    if (res.success) {
+     showMessage('Success', 'Login audit cleared.', 'success');
+     loadLoginAudit();
+    } else {
+     showMessage('Error', res.error, 'error');
+    }
+   }).adminClearLoginAudit(authToken);
+  }
+  function adminAddUser() {
+   const u = document.getElementById('admNewUser').value; const p = document.getElementById('admNewPass').value; const r = document.getElementById('admRole').value;
+   google.script.run.withSuccessHandler(res => {
+     if(res.success) { document.getElementById('admNewUser').value = ""; document.getElementById('admNewPass').value = ""; showMessage("Success", "User created.", "success"); loadAdminUsers(); } 
+     else showMessage("Error", res.error, "error");
+   }).adminAddUser(authToken, u, p, r);
+  }
+  function prepReset(user) { document.getElementById('admResetArea').classList.remove('hidden'); document.getElementById('admTargetUser').innerText = user; }
+  function adminConfirmReset() {
+   const user = document.getElementById('admTargetUser').innerText; const pass = document.getElementById('admResetPass').value;
+   if(!pass) return alert("Enter temporary password");
+   google.script.run.withSuccessHandler(res => {
+     if(res.success) { showMessage("Success", "Password reset.", "success"); document.getElementById('admResetArea').classList.add('hidden'); document.getElementById('admResetPass').value = ""; } 
+     else showMessage("Error", res.error, "error");
+   }).adminResetPassword(authToken, user, pass);
+  }
+
+  function startKiosk() { document.getElementById('viewLauncher').classList.add('hidden'); document.getElementById('viewKiosk').classList.remove('hidden'); if(isKioskMode) document.getElementById('btnKioskExit').innerText = "Home"; }
+  function startStaffRegister() { isStaffRegister = true; document.getElementById('viewStaff').classList.add('hidden'); document.getElementById('viewKiosk').classList.remove('hidden'); document.getElementById('btnKioskExit').innerText = "Cancel"; }
+  function exitKiosk() {
+   document.getElementById('viewKiosk').classList.add('hidden'); kioskReset();
+   if (isStaffRegister) { isStaffRegister = false; document.getElementById('viewStaff').classList.remove('hidden'); } 
+   else document.getElementById('viewLauncher').classList.remove('hidden');
+  }
+  function kioskReset() {
+    ['kFirst','kLast','kPostcode','kfReason','kfMedsList','kfEmergName', 'kfEmergPhone', 'kfConditionsExtra', 'kfPhone','kfEmail','kfStreet','kfCity','kfZip', 'kDay', 'kMonth', 'kYear', 'kfAllergiesExtra', 'kfSurgeries'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
+    document.querySelectorAll('input[type="checkbox"]').forEach(c => c.checked = false);
+    document.getElementById('kioskStep2').classList.add('hidden'); document.getElementById('kioskStep3').classList.add('hidden'); document.getElementById('kioskStep1').classList.remove('hidden'); document.getElementById('btnStep2Next').disabled = true; validateConsents();
+    tempKioskData = null; 
+  }
+  
+  function kioskIdentify() {
+   const f = document.getElementById('kFirst').value; const l = document.getElementById('kLast').value;
+   const dd = document.getElementById('kDay').value.padStart(2,'0'); const mm = document.getElementById('kMonth').value.padStart(2,'0'); const yyyy = document.getElementById('kYear').value;
+   const postcode = document.getElementById('kPostcode').value;
+   
+   if(!f || !l || !dd || !mm || !yyyy || yyyy.length < 4 || !postcode) return showMessage("Missing Information", "Please fill all identification fields (including Postcode).", "warning");
+   
+   const dob = `${yyyy}-${mm}-${dd}`; const btn = document.querySelector('#kioskStep1 button'); btn.innerText = "Searching...";
+   
+   tempKioskData = { f: f, l: l, dob: dob, postcode: postcode, id: null, exists: false };
+
+   google.script.run.withSuccessHandler(res => {
+     btn.innerText = "Next >>"; 
+     
+     if(res.status === 'PARTIAL_MATCH') {
+      showMessage("Verification Failed", "Patient found, but postcode does not match. Please try again.", "error");
+      return;
+     }
+
+     if(res.status === 'NOT_FOUND') {
+      tempKioskData.id = res.id; 
+      document.getElementById('modalNewPatientConfirm').classList.remove('hidden');
+      return;
+     }
+
+     proceedToStep2(res.id, res.data);
+     
+   }).checkPatientExists(f, l, dob, postcode);
+  }
+  
+  function confirmNewPatient() {
+    document.getElementById('modalNewPatientConfirm').classList.add('hidden');
+    proceedToStep2(tempKioskData.id, null);
+  }
+
+  function proceedToStep2(id, data) {
+     document.getElementById('kioskStep1').classList.add('hidden'); document.getElementById('kioskStep2').classList.remove('hidden');
+     document.getElementById('kioskStep2').dataset.pid = id; 
+     document.getElementById('kioskStep2').dataset.dob = tempKioskData.dob;
+     
+     document.querySelectorAll('input[type="checkbox"]').forEach(c => c.checked = false); 
+     if(document.getElementById('kfMedsList')) document.getElementById('kfMedsList').value = ""; 
+     if(document.getElementById('kfConditionsExtra')) document.getElementById('kfConditionsExtra').value = "";
+     if(document.getElementById('kfAllergiesExtra')) document.getElementById('kfAllergiesExtra').value = "";
+     if(document.getElementById('kfSurgeries')) document.getElementById('kfSurgeries').value = "";
+
+     if(data) {
+       document.getElementById('welcomeBanner').classList.remove('hidden'); document.getElementById('returningMedicalBanner').classList.remove('hidden'); document.getElementById('wbName').innerText = data.firstName;
+       ['Phone','Email','Street','City'].forEach(field => { document.getElementById('kf' + field).value = data[field.toLowerCase()] || ""; });
+       document.getElementById('kfZip').value = data.postcode || "";
+       document.getElementById('kfEmergName').value = data.emergencyName || ""; 
+       document.getElementById('kfEmergPhone').value = data.emergencyPhone || "";
+       document.getElementById('kfMedsList').value = data.meds || "";
+       document.getElementById('kfAllergiesExtra').value = data.allergies || ""; // Prefill Allergies
+     } else { 
+       document.getElementById('welcomeBanner').classList.add('hidden'); document.getElementById('returningMedicalBanner').classList.add('hidden'); 
+       document.getElementById('kfZip').value = tempKioskData.postcode;
+     }
+     validateKioskStep2();
+  }
+
+  function validateKioskStep2() {
+    const required = ['kfPhone', 'kfEmail', 'kfStreet', 'kfCity', 'kfZip', 'kfReason', 'kfEmergName', 'kfEmergPhone']; let isValid = true;
+    required.forEach(id => { const el = document.getElementById(id); if(!el || !el.value.trim()) isValid = false; });
+    document.getElementById('btnStep2Next').disabled = !isValid;
+  }
+  function goToKioskStep3() { document.getElementById('kioskStep2').classList.add('hidden'); document.getElementById('kioskStep3').classList.remove('hidden'); validateConsents(); }
+  function validateConsents() { 
+   const checks = document.querySelectorAll('.consent-check');
+   const allChecked = Array.from(checks).every(c => c.checked);
+   document.getElementById('btnFinalSubmit').disabled = !allChecked; 
+  }
+  
+  function submitFullKiosk() {
+   const pid = document.getElementById('kioskStep2').dataset.pid;
+   
+   let todayAlerts = [];
+   document.querySelectorAll('.alert-check:checked').forEach(c => todayAlerts.push(c.value));
+   
+   let conditions = []; 
+   document.querySelectorAll('.static-cond-check:checked').forEach(c => conditions.push(c.value));
+   if(document.getElementById('kfConditionsExtra').value) conditions.push(document.getElementById('kfConditionsExtra').value);
+   
+   let allergies = [];
+   document.querySelectorAll('.allergy-check:checked').forEach(c => allergies.push(c.value));
+   if(document.getElementById('kfAllergiesExtra').value) allergies.push(document.getElementById('kfAllergiesExtra').value);
+   const allergiesStr = allergies.length > 0 ? allergies.join(", ") : "NKDA";
+
+   let meds = [];
+   document.querySelectorAll('.med-check:checked').forEach(c => meds.push(c.value));
+   if(document.getElementById('kfMedsList').value) meds.push(document.getElementById('kfMedsList').value);
+
+   let ivHistory = [];
+   document.querySelectorAll('.iv-check:checked').forEach(c => ivHistory.push(c.value));
+   const proceduresStr = ivHistory.join(", "); 
+
+   const surgeriesStr = document.getElementById('kfSurgeries').value;
+
+   const form = {
+    id: pid, firstName: document.getElementById('kFirst').value, lastName: document.getElementById('kLast').value, dob: document.getElementById('kioskStep2').dataset.dob,
+    phone: document.getElementById('kfPhone').value, email: document.getElementById('kfEmail').value, street: document.getElementById('kfStreet').value, city: document.getElementById('kfCity').value, postcode: document.getElementById('kfZip').value,
+    meds: meds.join(", "), 
+    allergies: allergiesStr,
+    conditions: conditions.join(", "), 
+    alerts: todayAlerts.join(", "), 
+    surgeries: surgeriesStr, 
+    procedures: proceduresStr, 
+    reason: document.getElementById('kfReason').value,
+    emergencyName: document.getElementById('kfEmergName').value,
+    emergencyPhone: document.getElementById('kfEmergPhone').value,
+    user: isStaffRegister ? loggedUser : "KIOSK", skipQueue: isStaffRegister
+   };
+
+   const btn = document.getElementById('btnFinalSubmit'); btn.innerText = "Processing..."; btn.disabled = true;
+   google.script.run.withSuccessHandler(res => {
+     btn.innerText = "Submit & Check-In"; 
+     if (isStaffRegister) { exitKiosk(); loadDashboardData(); setTimeout(() => selectPatient(pid, true), 1000); } 
+     else { const modal = document.getElementById('kioskSuccessModal'); modal.classList.remove('hidden'); setTimeout(() => { modal.classList.add('hidden'); exitKiosk(); }, 3000); }
+   }).processRegistration(form, isStaffRegister ? authToken : null);
+  }
+
+  function loadDashboardData() {
+   const qDiv = document.getElementById('listQueue'); const btnRefresh = document.getElementById('btnRefresh');
+   if(!qDiv.innerHTML) qDiv.innerHTML = "<div class='p-2 text-xs'>Loading...</div>";
+   if(btnRefresh) btnRefresh.querySelector('svg').classList.add('animate-spin');
+   google.script.run.withSuccessHandler(res => {
+    if(btnRefresh) btnRefresh.querySelector('svg').classList.remove('animate-spin');
+    if(res.success) { appData = res; renderLists(); } else if (res.error === "Unauthorized") logout();
+   }).getDashboardData(authToken);
+  }
+  
+  function toggleDatabaseList() {
+    const list = document.getElementById('listAll');
+    const icon = document.getElementById('iconDbToggle');
+    
+    if (list.classList.contains('hidden')) {
+      list.classList.remove('hidden');
+      icon.style.transform = 'rotate(0deg)';
+    } else {
+      list.classList.add('hidden');
+      icon.style.transform = 'rotate(-90deg)';
+    }
+  }
+
+  function renderLists() {
+   const qDiv = document.getElementById('listQueue'); const aDiv = document.getElementById('listAll'); const search = document.getElementById('searchPatient').value.toLowerCase();
+   qDiv.innerHTML = ''; aDiv.innerHTML = '';
+   
+   let qCount = 0;
+   let aCount = 0;
+
+   const renderItem = (p, isQueue) => {
+    const pName = p.name.toUpperCase();
+    if(pName.toLowerCase().includes(search) || p.dob.includes(search) || p.id.toLowerCase().includes(search)) {
+      const el = document.createElement('div');
+      el.className = "p-3 border-b border-theme hover:bg-blue-500/10 cursor-pointer flex justify-between items-center";
+      
+      // UPDATED BADGE: Right aligned, smaller (9px), subtle background
+      const badgeNew = p.isNew ? `<span class="ml-2 px-1.5 py-px text-[9px] font-bold border border-yellow-500/60 text-yellow-500 rounded bg-yellow-500/10 uppercase tracking-widest shadow-[0_0_10px_rgba(234,179,8,0.1)]">NEW</span>` : '';
+      
+      el.innerHTML = `
+       <div>
+        <div class='font-bold text-sm uppercase'>${pName}</div>
+        ${isQueue ? `<div class='text-xs text-blue-500'>${p.queueReason}</div>` : ''}
+       </div>
+       ${badgeNew}`;
+       
+      el.onclick = () => selectPatient(p.id, isQueue);
+      return el;
+    }
+    return null;
+   };
+   
+   appData.queue.forEach(p => { 
+     const el = renderItem(p, true); 
+     if(el) { qDiv.appendChild(el); qCount++; }
+   });
+   appData.all.forEach(p => { 
+     const el = renderItem(p, false); 
+     if(el) { aDiv.appendChild(el); aCount++; }
+   });
+   
+   document.getElementById('countQueue').innerText = qCount;
+   document.getElementById('countAll').innerText = aCount;
+  }
+  function renderPatientList() { renderLists(); }
+  function selectPatient(id, fromQueue) {
+   try {
+    let p = appData.all.find(x => x.id === id); if(!p) return;
+    currentPatient = p;
+    document.getElementById('dashEmpty').classList.add('hidden'); document.getElementById('dashContent').classList.remove('hidden'); document.getElementById('staffSidebar').classList.remove('open'); 
+    document.getElementById('pName').innerText = p.name ? p.name.toUpperCase() : "UNKNOWN"; document.getElementById('pID').innerText = p.id;
+    document.getElementById('vPhone').innerText = p.phone || "-"; document.getElementById('vEmail').innerText = p.email || "-"; document.getElementById('vAddress').innerText = (p.street||"") + " " + (p.city||"") + " " + (p.postcode||"");
+    document.getElementById('vEmerg').innerText = (p.emergencyName || "") + " " + (p.emergencyPhone || "");
+    
+    document.getElementById('pReason').innerText = p.queueReason || "No active visit";
+    ['Allergies','Meds','Conditions','Surgeries','Procedures'].forEach(f => { document.getElementById('e'+f).value = p[f.toLowerCase()] || ""; });
+    document.getElementById('ePhone').value = p.phone; document.getElementById('eEmail').value = p.email; document.getElementById('eStreet').value = p.street; document.getElementById('eCity').value = p.city; document.getElementById('eZip').value = p.postcode;
+    document.getElementById('eEmergName').value = p.emergencyName || "";
+    document.getElementById('eEmergPhone').value = p.emergencyPhone || "";
+
+    const alertTile = document.getElementById('alertTile'); const alertText = document.getElementById('pAlertText'); const alertIcon = document.getElementById('pAlertIcon');
+    
+    if (p.alerts && p.alerts.trim() !== "") { 
+      alertText.innerText = p.alerts; 
+      alertText.className = "text-sm text-red-500 font-bold"; 
+      alertTile.className = "glass-panel p-3 flex items-center justify-between border border-red-500 bg-red-500/10"; 
+      alertIcon.innerText = "⚠️"; 
+      alertIcon.classList.remove('opacity-50'); 
+    } else { 
+      alertText.innerText = "None."; 
+      alertText.className = "text-sm text-muted"; 
+      alertTile.className = "glass-panel p-3 flex items-center justify-between"; 
+      alertIcon.innerText = "🔔"; 
+      alertIcon.classList.add('opacity-50'); 
+    }
+    
+    editMode = false; toggleEditMode(true); loadHistory(id);
+   } catch(e) { console.error(e); }
+  }
+  function toggleEditMode(forceClose) {
+   if(forceClose) editMode = true; editMode = !editMode;
+   const btn = document.getElementById('btnEditToggle'); const contactSec = document.getElementById('contactEditSection'); 
+   const medInputs = document.querySelectorAll('#dashContent textarea:not(#eProcedures), #dashContent input[readonly]');
+   
+   if(editMode) { btn.innerText = "🔓 Editing..."; btn.classList.add('btn-success'); contactSec.classList.remove('hidden'); medInputs.forEach(el => { el.readOnly = false; el.classList.remove('bg-transparent', 'border-none'); el.classList.add('bg-gray-500/10', 'border', 'border-theme'); }); } 
+   else { btn.innerText = "🔓 Edit Profile"; btn.classList.remove('btn-success'); contactSec.classList.add('hidden'); medInputs.forEach(el => { el.readOnly = true; el.classList.add('bg-transparent', 'border-none'); el.classList.remove('bg-gray-500/10', 'border', 'border-theme'); }); }
+  }
+
+  // UPDATED: savePatientEdits with Immediate UI Feedback
+  function savePatientEdits() {
+    if(!currentPatient) return;
+
+    // 1. VISUAL FEEDBACK START (Immediate)
+    // Change Save button text if visible
+    const saveBtn = document.querySelector('#contactEditSection button');
+    if(saveBtn) { saveBtn.innerText = "⏳ Saving..."; saveBtn.disabled = true; }
+
+    const form = { id: currentPatient.id, firstName: currentPatient.firstName, lastName: currentPatient.lastName, dob: currentPatient.dob, phone: document.getElementById('ePhone').value, email: document.getElementById('eEmail').value, street: document.getElementById('eStreet').value, city: document.getElementById('eCity').value, postcode: document.getElementById('eZip').value, meds: document.getElementById('eMeds').value, allergies: document.getElementById('eAllergies').value, conditions: document.getElementById('eConditions').value, surgeries: document.getElementById('eSurgeries').value, procedures: document.getElementById('eProcedures').value, emergencyName: document.getElementById('eEmergName').value, emergencyPhone: document.getElementById('eEmergPhone').value, user: loggedUser };
+    
+    google.script.run.withSuccessHandler(() => { 
+     // 2. VISUAL FEEDBACK END (Success)
+     const modal = document.getElementById('staffActionModal'); 
+     modal.classList.remove('hidden'); 
+     
+     // Reset button
+     if(saveBtn) { saveBtn.innerText = "Save"; saveBtn.disabled = false; }
+
+     // Hide modal after 2s (increased for visibility)
+     setTimeout(() => modal.classList.add('hidden'), 2000); 
+
+     currentPatient.phone = form.phone;
+     currentPatient.email = form.email;
+     currentPatient.street = form.street;
+     currentPatient.city = form.city;
+     currentPatient.postcode = form.postcode;
+     currentPatient.meds = form.meds;
+     currentPatient.allergies = form.allergies;
+     currentPatient.conditions = form.conditions;
+     currentPatient.surgeries = form.surgeries;
+     currentPatient.procedures = form.procedures;
+     currentPatient.emergencyName = form.emergencyName;
+     currentPatient.emergencyPhone = form.emergencyPhone;
+
+     // Update Display View (Important so user sees changes immediately)
+     document.getElementById('vPhone').innerText = form.phone; 
+     document.getElementById('vEmail').innerText = form.email; 
+     document.getElementById('vAddress').innerText = (form.street||"") + " " + (form.city||"") + " " + (form.postcode||"");
+     document.getElementById('vEmerg').innerText = (form.emergencyName || "") + " " + (form.emergencyPhone || "");
+
+     const pIdx = appData.all.findIndex(p => p.id === form.id);
+     if (pIdx > -1) {
+       appData.all[pIdx] = { ...appData.all[pIdx], ...form }; 
+     }
+
+     // 3. EXIT EDIT MODE (This fixes the confusing button status)
+     toggleEditMode(true);
+
+    }).withFailureHandler((e) => {
+      showMessage("Error", "Save failed: " + e.message, "error");
+      if(saveBtn) { saveBtn.innerText = "Save"; saveBtn.disabled = false; }
+    }).updatePatientFull(form, authToken);
+  }
+
+  function loadHistory(id) {
+    document.getElementById('historyLoader').classList.remove('hidden'); document.getElementById('historyBody').innerHTML = '';
+    google.script.run.withSuccessHandler(rows => {
+     document.getElementById('historyLoader').classList.add('hidden'); const t = document.getElementById('historyBody');
+     if(!rows || !rows.length) { t.innerHTML = "<tr><td colspan='4' class='p-3 text-center'>No history</td></tr>"; return; }
+     rows.forEach(r => { t.innerHTML += `<tr class='border-b border-theme hover:bg-gray-500/10'><td class='p-3'>${r.date}</td><td class='p-3 font-bold'>${r.treatment}</td><td class='p-3'>${r.notes}</td><td class='p-3'>${r.consultant}</td></tr>`; });
+    }).getVisitsHistory(id, authToken);
+  }
+  function showAuditLogs() {
+    if(!currentPatient) return; document.getElementById('modalAudit').classList.remove('hidden'); document.getElementById('auditLoader').classList.remove('hidden'); document.getElementById('auditBody').innerHTML = '';
+    google.script.run.withSuccessHandler(logs => {
+     document.getElementById('auditLoader').classList.add('hidden'); const t = document.getElementById('auditBody');
+     if(!logs || !logs.length) { t.innerHTML = "<tr><td colspan='5' class='p-2 text-center'>No changes recorded</td></tr>"; return; }
+     logs.forEach(l => { t.innerHTML += `<tr class='border-b border-theme text-xs'><td class='p-2'>${l.date}</td><td class='p-2 font-bold'>${l.field}</td><td class='p-2 text-red-400'>${l.oldVal}</td><td class='p-2 text-green-400'>${l.newVal}</td><td class='p-2'>${l.user}</td></tr>`; });
+    }).getPatientAudit(currentPatient.id, authToken);
+  }
+  function closeAuditModal() { document.getElementById('modalAudit').classList.add('hidden'); }
+  function openVisitModal() { document.getElementById('modalVisit').classList.remove('hidden'); document.getElementById('vTreatment').value = ''; const reason = document.getElementById('pReason').innerText; document.getElementById('vNotes').value = (reason && reason !== "No active visit") ? reason : ""; document.getElementById('vConsultant').value = loggedUser; document.getElementById('vConsultant').classList.add('bg-gray-500/20'); document.getElementById('vConsultant').readOnly = true; }
+  function closeVisitModal() { document.getElementById('modalVisit').classList.add('hidden'); }
+  function submitVisit() {
+    const payload = { patientId: currentPatient.id, treatment: document.getElementById('vTreatment').value, notes: document.getElementById('vNotes').value, consultant: document.getElementById('vConsultant').value };
+    google.script.run.withSuccessHandler(() => { closeVisitModal(); appData.queue = appData.queue.filter(q => q.id !== currentPatient.id); const pIdx = appData.all.findIndex(x => x.id === currentPatient.id); if(pIdx > -1) appData.all[pIdx].queueReason = null; renderLists(); loadHistory(currentPatient.id); document.getElementById('pReason').innerText = "No active visit"; }).saveNewVisit(payload, authToken);
+  }
+  function toggleSidebar() { document.getElementById('staffSidebar').classList.toggle('open'); }
+  function closeSidebarMobile() { document.getElementById('staffSidebar').classList.remove('open'); }
+
+  // --- MANAGER ZONE FUNCTIONS ---
+
+  function downloadPatientPDF() {
+   if(!currentPatient) return;
+   const btn = document.getElementById('btnExportPdf');
+   const originalText = btn.innerHTML;
+   btn.innerHTML = "⏳ Generating...";
+   btn.disabled = true;
+
+   google.script.run.withSuccessHandler(res => {
+     btn.innerHTML = originalText;
+     btn.disabled = false;
+     if(res.success) {
+      // Convert Base64 to Blob and Download
+      const byteCharacters = atob(res.data);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], {type: "application/pdf"});
+      const link = document.createElement('a');
+      link.href = window.URL.createObjectURL(blob);
+      link.download = `Patient_${currentPatient.lastName}_${currentPatient.id}.pdf`;
+      link.click();
+     } else {
+      showMessage("Export Failed", res.error, "error");
+     }
+   }).getPatientPdfBase64(currentPatient.id, authToken);
+  }
+
+  function openDeleteModal() {
+    document.getElementById('modalDeleteConfirm').classList.remove('hidden');
+    document.getElementById('chkDeleteConsent').checked = false;
+    document.getElementById('delManagerPass').value = '';
+    document.getElementById('btnConfirmDelete').disabled = true;
+  }
+
+  function closeDeleteModal() {
+    document.getElementById('modalDeleteConfirm').classList.add('hidden');
+  }
+
+  function toggleDeleteBtn() {
+    const consent = document.getElementById('chkDeleteConsent').checked;
+    const pass = document.getElementById('delManagerPass').value;
+    document.getElementById('btnConfirmDelete').disabled = !(consent && pass.length > 0);
+  }
+
+  function executeDelete() {
+    const pass = document.getElementById('delManagerPass').value;
+    const btn = document.getElementById('btnConfirmDelete');
+    btn.innerText = "DELETING...";
+    
+    google.script.run.withSuccessHandler(res => {
+     if(res.success) {
+       closeDeleteModal();
+       showMessage("Deleted", "Patient record successfully removed.", "success");
+       // Refresh Data and go home
+       loadDashboardData();
+       document.getElementById('dashContent').classList.add('hidden');
+       document.getElementById('dashEmpty').classList.remove('hidden');
+       currentPatient = null;
+     } else {
+       btn.innerText = "DELETE RECORD";
+       showMessage("Error", res.error, "error");
+     }
+    }).deletePatientRecord(currentPatient.id, pass, authToken);
+  }
+
+  // --- AUTO LOGOUT / INACTIVITY TRACKER ---
+  let inactivityTimer;
+  const INACTIVITY_LIMIT = 300000; // 5 minutes in ms
+
+  function startInactivityService() {
+    // Events that signal user activity
+    const events = ['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart'];
+    
+    const reset = () => resetInactivityTimer();
+    
+    events.forEach(event => {
+      document.addEventListener(event, reset, true);
+    });
+  }
+
+  function resetInactivityTimer() {
+    clearTimeout(inactivityTimer);
+    
+    // Only set the logout timer if the user is actually logged in
+    if (authToken) {
+      inactivityTimer = setTimeout(() => {
+        logout();
+        showMessage("Session Expired", "You have been logged out due to 5 minutes of inactivity.", "warning");
+      }, INACTIVITY_LIMIT);
+    }
+  }
+ </script>
+</body>
+</html>
