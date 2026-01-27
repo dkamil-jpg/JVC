@@ -752,19 +752,28 @@ const StaffPortal = () => {
                   <h4 className="text-sm font-bold text-slate-300">Login Audit Log</h4>
                   {isAdmin && <Button size="sm" variant="destructive" onClick={handleClearLoginAudit}><Trash2 className="w-3 h-3 mr-2" />Clear (Admin)</Button>}
                 </div>
-                <table className="w-full text-xs">
-                  <thead className="bg-slate-800/50 text-slate-400 uppercase"><tr><th className="p-2 text-left">Timestamp</th><th className="p-2 text-left">User</th><th className="p-2 text-left">Event</th><th className="p-2 text-left">Details</th></tr></thead>
-                  <tbody>
-                    {loginAudit.map((log, i) => (
-                      <tr key={i} className="border-b border-slate-800">
-                        <td className="p-2 text-slate-500">{log.ts || log.timestamp}</td>
-                        <td className="p-2 font-bold text-slate-300">{log.username}</td>
-                        <td className="p-2"><Badge className={log.event === 'SUCCESS' ? 'bg-emerald-500/20 text-emerald-400' : log.event === 'FAIL' || log.event === 'LOCKED' ? 'bg-red-500/20 text-red-400' : 'bg-slate-500/20 text-slate-400'}>{log.event}</Badge></td>
-                        <td className="p-2 text-slate-500">{log.details}</td>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs min-w-[600px]">
+                    <thead className="bg-slate-800/50 text-slate-400 uppercase">
+                      <tr>
+                        <th className="p-2 text-left w-40">Timestamp</th>
+                        <th className="p-2 text-left w-28">User</th>
+                        <th className="p-2 text-left w-24">Event</th>
+                        <th className="p-2 text-left">Details</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {loginAudit.map((log, i) => (
+                        <tr key={i} className="border-b border-slate-800">
+                          <td className="p-2 text-slate-500 whitespace-nowrap">{log.ts || log.timestamp}</td>
+                          <td className="p-2 font-bold text-slate-300">{log.username}</td>
+                          <td className="p-2"><Badge className={log.event === 'SUCCESS' ? 'bg-emerald-500/20 text-emerald-400' : log.event === 'FAIL' || log.event === 'LOCKED' ? 'bg-red-500/20 text-red-400' : 'bg-slate-500/20 text-slate-400'}>{log.event}</Badge></td>
+                          <td className="p-2 text-slate-500">{log.details}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </TabsContent>
 
               {/* System Audit Tab - ALL OPERATIONS */}
