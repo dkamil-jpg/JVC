@@ -700,6 +700,7 @@ const StaffPortal = () => {
               <TabsTrigger value="users"><Users className="w-4 h-4 mr-2" />Users</TabsTrigger>
               <TabsTrigger value="login-log"><Key className="w-4 h-4 mr-2" />Login Log</TabsTrigger>
               <TabsTrigger value="system-log"><ClipboardList className="w-4 h-4 mr-2" />System Audit</TabsTrigger>
+              {isAdmin && <TabsTrigger value="data"><Database className="w-4 h-4 mr-2" />Dane</TabsTrigger>}
             </TabsList>
 
             <ScrollArea className="flex-1">
