@@ -804,11 +804,11 @@ const StaffPortal = () => {
                     {/* Password field for all actions */}
                     <div className="glass-panel p-4 rounded-xl border border-violet-500/30 bg-violet-900/10">
                       <h4 className="text-sm font-bold text-violet-400 mb-3 flex items-center gap-2">
-                        <Shield className="w-4 h-4" /> Wymagane hasło do wszystkich operacji
+                        <Shield className="w-4 h-4" /> Password Required for All Operations
                       </h4>
                       <Input 
                         type="password" 
-                        placeholder="Twoje hasło administratora" 
+                        placeholder="Your admin password" 
                         value={dataPassword} 
                         onChange={(e) => setDataPassword(e.target.value)} 
                         className="bg-slate-950 border-slate-800 max-w-xs" 
@@ -818,65 +818,65 @@ const StaffPortal = () => {
                     {/* Danger Zone - Delete Data */}
                     <div className="glass-panel p-4 rounded-xl border border-red-500/30 bg-red-900/10">
                       <h4 className="text-sm font-bold text-red-400 mb-4 flex items-center gap-2">
-                        <AlertTriangle className="w-4 h-4" /> Strefa zagrożenia - Usuwanie danych
+                        <AlertTriangle className="w-4 h-4" /> Danger Zone - Delete Data
                       </h4>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         {/* Delete All Patients */}
                         <div className="p-3 border border-red-500/20 rounded-lg">
-                          <h5 className="text-xs text-slate-400 uppercase mb-2">Pacjenci</h5>
+                          <h5 className="text-xs text-slate-400 uppercase mb-2">Patients</h5>
                           {dataConfirmAction === 'delete-patients' ? (
                             <div className="space-y-2">
-                              <p className="text-xs text-red-400">Na pewno usunąć WSZYSTKICH pacjentów?</p>
+                              <p className="text-xs text-red-400">Delete ALL patients?</p>
                               <div className="flex gap-2">
                                 <Button size="sm" variant="destructive" onClick={handleDeleteAllPatients} disabled={!dataPassword || dataActionLoading}>
-                                  {dataActionLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : 'TAK'}
+                                  {dataActionLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : 'YES'}
                                 </Button>
-                                <Button size="sm" variant="outline" onClick={() => setDataConfirmAction(null)}>Anuluj</Button>
+                                <Button size="sm" variant="outline" onClick={() => setDataConfirmAction(null)}>Cancel</Button>
                               </div>
                             </div>
                           ) : (
                             <Button size="sm" variant="destructive" onClick={() => setDataConfirmAction('delete-patients')} className="w-full">
-                              <Trash2 className="w-3 h-3 mr-2" /> Usuń wszystkich pacjentów
+                              <Trash2 className="w-3 h-3 mr-2" /> Delete All Patients
                             </Button>
                           )}
                         </div>
 
                         {/* Delete All Visits */}
                         <div className="p-3 border border-red-500/20 rounded-lg">
-                          <h5 className="text-xs text-slate-400 uppercase mb-2">Wizyty</h5>
+                          <h5 className="text-xs text-slate-400 uppercase mb-2">Visits</h5>
                           {dataConfirmAction === 'delete-visits' ? (
                             <div className="space-y-2">
-                              <p className="text-xs text-red-400">Na pewno usunąć WSZYSTKIE wizyty?</p>
+                              <p className="text-xs text-red-400">Delete ALL visits?</p>
                               <div className="flex gap-2">
                                 <Button size="sm" variant="destructive" onClick={handleDeleteAllVisits} disabled={!dataPassword || dataActionLoading}>
-                                  {dataActionLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : 'TAK'}
+                                  {dataActionLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : 'YES'}
                                 </Button>
-                                <Button size="sm" variant="outline" onClick={() => setDataConfirmAction(null)}>Anuluj</Button>
+                                <Button size="sm" variant="outline" onClick={() => setDataConfirmAction(null)}>Cancel</Button>
                               </div>
                             </div>
                           ) : (
                             <Button size="sm" variant="destructive" onClick={() => setDataConfirmAction('delete-visits')} className="w-full">
-                              <Trash2 className="w-3 h-3 mr-2" /> Usuń wszystkie wizyty
+                              <Trash2 className="w-3 h-3 mr-2" /> Delete All Visits
                             </Button>
                           )}
                         </div>
 
                         {/* Delete All Queue */}
                         <div className="p-3 border border-red-500/20 rounded-lg">
-                          <h5 className="text-xs text-slate-400 uppercase mb-2">Kolejka</h5>
+                          <h5 className="text-xs text-slate-400 uppercase mb-2">Queue</h5>
                           {dataConfirmAction === 'delete-queue' ? (
                             <div className="space-y-2">
-                              <p className="text-xs text-red-400">Na pewno wyczyścić całą kolejkę?</p>
+                              <p className="text-xs text-red-400">Clear entire queue?</p>
                               <div className="flex gap-2">
                                 <Button size="sm" variant="destructive" onClick={handleDeleteAllQueue} disabled={!dataPassword || dataActionLoading}>
-                                  {dataActionLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : 'TAK'}
+                                  {dataActionLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : 'YES'}
                                 </Button>
-                                <Button size="sm" variant="outline" onClick={() => setDataConfirmAction(null)}>Anuluj</Button>
+                                <Button size="sm" variant="outline" onClick={() => setDataConfirmAction(null)}>Cancel</Button>
                               </div>
                             </div>
                           ) : (
                             <Button size="sm" variant="destructive" onClick={() => setDataConfirmAction('delete-queue')} className="w-full">
-                              <Trash2 className="w-3 h-3 mr-2" /> Wyczyść kolejkę
+                              <Trash2 className="w-3 h-3 mr-2" /> Clear Queue
                             </Button>
                           )}
                         </div>
@@ -887,59 +887,62 @@ const StaffPortal = () => {
                     <div className="glass-panel p-4 rounded-xl border border-emerald-500/30 bg-emerald-900/10">
                       <div className="flex justify-between items-center mb-4">
                         <h4 className="text-sm font-bold text-emerald-400 flex items-center gap-2">
-                          <HardDrive className="w-4 h-4" /> Kopie zapasowe
+                          <HardDrive className="w-4 h-4" /> Backups
                         </h4>
                         <Button size="sm" onClick={handleCreateBackup} disabled={!dataPassword || dataActionLoading} className="bg-emerald-600 hover:bg-emerald-700">
                           {dataActionLoading ? <Loader2 className="w-3 h-3 animate-spin mr-2" /> : <Archive className="w-3 h-3 mr-2" />}
-                          Utwórz kopię zapasową
+                          Create Backup
                         </Button>
                       </div>
+                      <p className="text-xs text-slate-500 mb-3">Automatic backups run daily at 2:00 AM UTC (last 30 kept)</p>
 
                       {backups.length === 0 ? (
-                        <p className="text-slate-500 text-sm text-center py-4">Brak kopii zapasowych</p>
+                        <p className="text-slate-500 text-sm text-center py-4">No backups found</p>
                       ) : (
-                        <table className="w-full text-sm">
-                          <thead className="bg-slate-800/50 text-xs uppercase text-slate-400">
-                            <tr>
-                              <th className="p-2 text-left">ID kopii</th>
-                              <th className="p-2 text-left">Data utworzenia</th>
-                              <th className="p-2 text-left">Utworzył</th>
-                              <th className="p-2 text-left">Dane</th>
-                              <th className="p-2 text-left">Akcje</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {backups.map((b) => (
-                              <tr key={b.backup_id} className="border-b border-slate-800">
-                                <td className="p-2 font-mono text-emerald-400 text-xs">{b.backup_id}</td>
-                                <td className="p-2 text-slate-400">{b.created_at?.slice(0, 16).replace('T', ' ')}</td>
-                                <td className="p-2 text-slate-400">{b.created_by}</td>
-                                <td className="p-2 text-slate-500 text-xs">
-                                  P: {b.counts?.patients || 0}, W: {b.counts?.visits || 0}
-                                </td>
-                                <td className="p-2">
-                                  {dataConfirmAction === `restore-${b.backup_id}` ? (
-                                    <div className="flex gap-2">
-                                      <Button size="sm" onClick={() => handleRestoreBackup(b.backup_id)} disabled={!dataPassword || dataActionLoading} className="bg-emerald-600 hover:bg-emerald-700 h-7 px-2">
-                                        {dataActionLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : 'TAK'}
-                                      </Button>
-                                      <Button size="sm" variant="outline" onClick={() => setDataConfirmAction(null)} className="h-7 px-2">Nie</Button>
-                                    </div>
-                                  ) : (
-                                    <div className="flex gap-2">
-                                      <Button size="sm" variant="outline" onClick={() => setDataConfirmAction(`restore-${b.backup_id}`)} className="h-7 px-2 text-emerald-400 border-emerald-500/50">
-                                        <RotateCcw className="w-3 h-3" />
-                                      </Button>
-                                      <Button size="sm" variant="outline" onClick={() => handleDeleteBackup(b.backup_id)} disabled={!dataPassword || dataActionLoading} className="h-7 px-2 text-red-400 border-red-500/50">
-                                        <Trash2 className="w-3 h-3" />
-                                      </Button>
-                                    </div>
-                                  )}
-                                </td>
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-sm">
+                            <thead className="bg-slate-800/50 text-xs uppercase text-slate-400">
+                              <tr>
+                                <th className="p-2 text-left">Backup ID</th>
+                                <th className="p-2 text-left">Created</th>
+                                <th className="p-2 text-left">By</th>
+                                <th className="p-2 text-left">Data</th>
+                                <th className="p-2 text-left">Actions</th>
                               </tr>
-                            ))}
-                          </tbody>
-                        </table>
+                            </thead>
+                            <tbody>
+                              {backups.map((b) => (
+                                <tr key={b.backup_id} className="border-b border-slate-800">
+                                  <td className="p-2 font-mono text-emerald-400 text-xs">{b.backup_id}</td>
+                                  <td className="p-2 text-slate-400 whitespace-nowrap">{b.created_at?.slice(0, 16).replace('T', ' ')}</td>
+                                  <td className="p-2 text-slate-400">{b.created_by}</td>
+                                  <td className="p-2 text-slate-500 text-xs whitespace-nowrap">
+                                    P:{b.counts?.patients || 0} V:{b.counts?.visits || 0}
+                                  </td>
+                                  <td className="p-2">
+                                    {dataConfirmAction === `restore-${b.backup_id}` ? (
+                                      <div className="flex gap-2">
+                                        <Button size="sm" onClick={() => handleRestoreBackup(b.backup_id)} disabled={!dataPassword || dataActionLoading} className="bg-emerald-600 hover:bg-emerald-700 h-7 px-2">
+                                          {dataActionLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : 'YES'}
+                                        </Button>
+                                        <Button size="sm" variant="outline" onClick={() => setDataConfirmAction(null)} className="h-7 px-2">No</Button>
+                                      </div>
+                                    ) : (
+                                      <div className="flex gap-2">
+                                        <Button size="sm" variant="outline" onClick={() => setDataConfirmAction(`restore-${b.backup_id}`)} className="h-7 px-2 text-emerald-400 border-emerald-500/50" title="Restore">
+                                          <RotateCcw className="w-3 h-3" />
+                                        </Button>
+                                        <Button size="sm" variant="outline" onClick={() => handleDeleteBackup(b.backup_id)} disabled={!dataPassword || dataActionLoading} className="h-7 px-2 text-red-400 border-red-500/50" title="Delete">
+                                          <Trash2 className="w-3 h-3" />
+                                        </Button>
+                                      </div>
+                                    )}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
                       )}
                     </div>
                   </div>
