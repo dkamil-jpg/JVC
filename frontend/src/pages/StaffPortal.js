@@ -255,6 +255,100 @@ const StaffPortal = () => {
     }
   };
 
+  // Data Management Functions (Admin only)
+  const handleDeleteAllPatients = async () => {
+    if (!dataPassword) return;
+    setDataActionLoading(true);
+    try {
+      const res = await api().post('/admin/data/delete-all-patients', { password: dataPassword });
+      alert(`Usunięto ${res.data.deleted_count} pacjentów`);
+      setDataConfirmAction(null);
+      setDataPassword('');
+      loadDashboardData();
+    } catch (error) {
+      alert(error.response?.data?.detail || 'Błąd - sprawdź hasło');
+    } finally {
+      setDataActionLoading(false);
+    }
+  };
+
+  const handleDeleteAllVisits = async () => {
+    if (!dataPassword) return;
+    setDataActionLoading(true);
+    try {
+      const res = await api().post('/admin/data/delete-all-visits', { password: dataPassword });
+      alert(`Usunięto ${res.data.deleted_count} wizyt`);
+      setDataConfirmAction(null);
+      setDataPassword('');
+    } catch (error) {
+      alert(error.response?.data?.detail || 'Błąd - sprawdź hasło');
+    } finally {
+      setDataActionLoading(false);
+    }
+  };
+
+  const handleDeleteAllQueue = async () => {
+    if (!dataPassword) return;
+    setDataActionLoading(true);
+    try {
+      const res = await api().post('/admin/data/delete-all-queue', { password: dataPassword });
+      alert(`Usunięto ${res.data.deleted_count} wpisów z kolejki`);
+      setDataConfirmAction(null);
+      setDataPassword('');
+      loadDashboardData();
+    } catch (error) {
+      alert(error.response?.data?.detail || 'Błąd - sprawdź hasło');
+    } finally {
+      setDataActionLoading(false);
+    }
+  };
+
+  const handleCreateBackup = async () => {
+    if (!dataPassword) return;
+    setDataActionLoading(true);
+    try {
+      const res = await api().post('/admin/backup', { password: dataPassword });
+      alert(`Kopia zapasowa utworzona: ${res.data.backup_id}\nPacjenci: ${res.data.counts.patients}, Wizyty: ${res.data.counts.visits}`);
+      setDataPassword('');
+      loadAdminData();
+    } catch (error) {
+      alert(error.response?.data?.detail || 'Błąd - sprawdź hasło');
+    } finally {
+      setDataActionLoading(false);
+    }
+  };
+
+  const handleRestoreBackup = async (backupId) => {
+    if (!dataPassword) return;
+    setDataActionLoading(true);
+    try {
+      const res = await api().post(`/admin/restore/${backupId}`, { password: dataPassword });
+      alert(`Przywrócono dane z kopii ${backupId}:\nPacjenci: ${res.data.restored.patients}\nWizyty: ${res.data.restored.visits}`);
+      setDataConfirmAction(null);
+      setDataPassword('');
+      loadDashboardData();
+    } catch (error) {
+      alert(error.response?.data?.detail || 'Błąd - sprawdź hasło');
+    } finally {
+      setDataActionLoading(false);
+    }
+  };
+
+  const handleDeleteBackup = async (backupId) => {
+    if (!dataPassword) return;
+    setDataActionLoading(true);
+    try {
+      await api().delete(`/admin/backup/${backupId}`, { data: { password: dataPassword } });
+      alert(`Kopia ${backupId} usunięta`);
+      setDataPassword('');
+      loadAdminData();
+    } catch (error) {
+      alert(error.response?.data?.detail || 'Błąd - sprawdź hasło');
+    } finally {
+      setDataActionLoading(false);
+    }
+  };
+
   const goToHome = () => navigate('/');
 
   // Determine available roles for new user creation
