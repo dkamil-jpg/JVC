@@ -926,8 +926,8 @@ const StaffPortal = () => {
 
               {/* System Audit Tab - ALL OPERATIONS */}
               <TabsContent value="system-log" className="mt-0">
-                <div className="flex justify-between items-center mb-4 flex-wrap gap-2">
-                  <h4 className="text-sm font-bold text-slate-300">System Audit Log (All Operations)</h4>
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
+                  <h4 className="text-sm font-bold text-slate-300">System Audit Log</h4>
                   <div className="flex gap-2">
                     {isAdmin && (
                       <>
@@ -952,10 +952,10 @@ const StaffPortal = () => {
                           a.click();
                           URL.revokeObjectURL(url);
                         }}>
-                          <Download className="w-3 h-3 mr-2" />Export CSV
+                          <Download className="w-3 h-3 mr-1" /><span className="hidden sm:inline">Export </span>CSV
                         </Button>
                         <Button size="sm" variant="destructive" onClick={handleClearSystemAudit}>
-                          <Trash2 className="w-3 h-3 mr-2" />Clear
+                          <Trash2 className="w-3 h-3 mr-1" /><span className="hidden sm:inline">Clear</span>
                         </Button>
                       </>
                     )}
@@ -963,24 +963,24 @@ const StaffPortal = () => {
                 </div>
                 <div className="border border-slate-800 rounded-lg overflow-hidden">
                   <div className="overflow-x-auto max-h-[400px] overflow-y-auto">
-                    <table className="w-full text-xs" style={{ minWidth: '800px' }}>
-                      <thead className="bg-slate-800/50 text-slate-400 uppercase sticky top-0">
+                    <table className="w-full text-xs" style={{ minWidth: '450px' }}>
+                      <thead className="bg-slate-800/50 text-slate-400 uppercase sticky top-0 text-[10px]">
                         <tr>
-                          <th className="p-2 text-left whitespace-nowrap">Timestamp</th>
-                          <th className="p-2 text-left whitespace-nowrap">Patient ID</th>
-                          <th className="p-2 text-left whitespace-nowrap">Action</th>
-                          <th className="p-2 text-left whitespace-nowrap">Field</th>
-                          <th className="p-2 text-left whitespace-nowrap">Old Value</th>
-                          <th className="p-2 text-left whitespace-nowrap">New Value</th>
-                          <th className="p-2 text-left whitespace-nowrap">User</th>
+                          <th className="p-1.5 md:p-2 text-left whitespace-nowrap">Time</th>
+                          <th className="p-1.5 md:p-2 text-left whitespace-nowrap hidden md:table-cell">Patient</th>
+                          <th className="p-1.5 md:p-2 text-left whitespace-nowrap">Action</th>
+                          <th className="p-1.5 md:p-2 text-left whitespace-nowrap">Field</th>
+                          <th className="p-1.5 md:p-2 text-left whitespace-nowrap hidden sm:table-cell">Old</th>
+                          <th className="p-1.5 md:p-2 text-left whitespace-nowrap hidden sm:table-cell">New</th>
+                          <th className="p-1.5 md:p-2 text-left whitespace-nowrap">User</th>
                         </tr>
                       </thead>
                       <tbody>
                         {systemAudit.map((log, i) => (
                           <tr key={i} className="border-b border-slate-800 hover:bg-slate-800/30">
-                            <td className="p-2 text-slate-500 whitespace-nowrap">{log.timestamp?.slice(0, 19).replace('T', ' ')}</td>
-                            <td className="p-2 font-mono text-slate-400 text-[10px]">{log.patient_id}</td>
-                            <td className="p-2"><Badge className={
+                            <td className="p-1.5 md:p-2 text-slate-500 whitespace-nowrap text-[10px]">{log.timestamp?.slice(5, 16).replace('T', ' ')}</td>
+                            <td className="p-1.5 md:p-2 font-mono text-slate-400 text-[9px] hidden md:table-cell">{log.patient_id?.slice(0, 8)}...</td>
+                            <td className="p-1.5 md:p-2"><Badge className={`text-[8px] md:text-[10px] ${
                               log.action === 'KIOSK_REGISTER' ? 'bg-emerald-500/20 text-emerald-400' :
                               log.action === 'NEW_VISIT' ? 'bg-blue-500/20 text-blue-400' :
                               log.action === 'DELETE' ? 'bg-red-500/20 text-red-400' :
@@ -989,18 +989,18 @@ const StaffPortal = () => {
                               log.action === 'BACKUP_CREATE' ? 'bg-emerald-500/20 text-emerald-400' :
                               log.action === 'BACKUP_RESTORE' ? 'bg-blue-500/20 text-blue-400' :
                               'bg-slate-500/20 text-slate-400'
-                            }>{log.action}</Badge></td>
-                            <td className="p-2 text-slate-300">{log.field}</td>
-                            <td className="p-2 text-red-400 max-w-[150px] truncate" title={log.old_value}>{log.old_value}</td>
-                            <td className="p-2 text-emerald-400 max-w-[150px] truncate" title={log.new_value}>{log.new_value}</td>
-                            <td className="p-2 text-slate-500 whitespace-nowrap">{log.user}</td>
+                            }`}>{log.action}</Badge></td>
+                            <td className="p-1.5 md:p-2 text-slate-300 text-[10px]">{log.field}</td>
+                            <td className="p-1.5 md:p-2 text-red-400 max-w-[80px] md:max-w-[120px] truncate hidden sm:table-cell text-[10px]" title={log.old_value}>{log.old_value}</td>
+                            <td className="p-1.5 md:p-2 text-emerald-400 max-w-[80px] md:max-w-[120px] truncate hidden sm:table-cell text-[10px]" title={log.new_value}>{log.new_value}</td>
+                            <td className="p-1.5 md:p-2 text-slate-500 whitespace-nowrap text-[10px]">{log.user}</td>
                           </tr>
                         ))}
                       </tbody>
                     </table>
                   </div>
                 </div>
-                <p className="text-xs text-slate-600 mt-2">Showing {systemAudit.length} records. Scroll table to see all columns and rows.</p>
+                <p className="text-[10px] md:text-xs text-slate-600 mt-2">Showing {systemAudit.length} records. <span className="hidden sm:inline">Scroll to see all columns.</span></p>
               </TabsContent>
 
               {/* Data Management Tab - ADMIN ONLY */}
