@@ -721,14 +721,14 @@ const StaffPortal = () => {
 
       {/* Consents Modal - View patient signed consents and signatures */}
       <Dialog open={consentsModalOpen} onOpenChange={setConsentsModalOpen}>
-        <DialogContent className="bg-slate-900 border-slate-800 max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-          <DialogHeader>
+        <DialogContent className="bg-slate-900 border-slate-800 max-w-4xl max-h-[85vh] overflow-hidden flex flex-col">
+          <DialogHeader className="flex-shrink-0">
             <DialogTitle className="flex items-center gap-2">
               <FileSignature className="w-5 h-5 text-emerald-500" />
               Signed Consents - {selectedPatient?.name}
             </DialogTitle>
           </DialogHeader>
-          <ScrollArea className="flex-1">
+          <div className="flex-1 overflow-y-auto min-h-0 pr-2">
             {patientConsents.length === 0 ? (
               <div className="text-center py-8 text-slate-500">No consent records found for this patient</div>
             ) : (
@@ -789,8 +789,8 @@ const StaffPortal = () => {
                 ))}
               </div>
             )}
-          </ScrollArea>
-          <DialogFooter>
+          </div>
+          <DialogFooter className="flex-shrink-0">
             <Button variant="outline" onClick={() => setConsentsModalOpen(false)}>Close</Button>
           </DialogFooter>
         </DialogContent>
