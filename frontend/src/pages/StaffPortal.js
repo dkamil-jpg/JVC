@@ -807,12 +807,14 @@ const StaffPortal = () => {
           </DialogHeader>
           
           <Tabs defaultValue="users" className="flex-1 overflow-hidden flex flex-col">
-            <TabsList className="bg-slate-800 mb-4">
-              <TabsTrigger value="users"><Users className="w-4 h-4 mr-2" />Users</TabsTrigger>
-              <TabsTrigger value="login-log"><Key className="w-4 h-4 mr-2" />Login Log</TabsTrigger>
-              <TabsTrigger value="system-log"><ClipboardList className="w-4 h-4 mr-2" />System Audit</TabsTrigger>
-              {isAdmin && <TabsTrigger value="data"><Database className="w-4 h-4 mr-2" />Dane</TabsTrigger>}
-            </TabsList>
+            <div className="overflow-x-auto mb-4 pb-2">
+              <TabsList className="bg-slate-800 min-w-max">
+                <TabsTrigger value="users" className="text-xs md:text-sm"><Users className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />Users</TabsTrigger>
+                <TabsTrigger value="login-log" className="text-xs md:text-sm"><Key className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />Login</TabsTrigger>
+                <TabsTrigger value="system-log" className="text-xs md:text-sm"><ClipboardList className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />Audit</TabsTrigger>
+                {isAdmin && <TabsTrigger value="data" className="text-xs md:text-sm"><Database className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />Dane</TabsTrigger>}
+              </TabsList>
+            </div>
 
             <ScrollArea className="flex-1">
               {/* Users Tab */}
