@@ -38,6 +38,7 @@ const StaffPortal = () => {
   
   // Modals
   const [visitModalOpen, setVisitModalOpen] = useState(false);
+  const [editVisitModalOpen, setEditVisitModalOpen] = useState(false);
   const [auditModalOpen, setAuditModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [adminModalOpen, setAdminModalOpen] = useState(false);
@@ -50,6 +51,9 @@ const StaffPortal = () => {
   const [patientConsents, setPatientConsents] = useState([]);
   const [editForm, setEditForm] = useState({});
   const [visitForm, setVisitForm] = useState({ treatment: '', notes: '', consultant: '' });
+  const [editingVisit, setEditingVisit] = useState(null);
+  const [editVisitForm, setEditVisitForm] = useState({ treatment: '', notes: '' });
+  const [editVisitLoading, setEditVisitLoading] = useState(false);
   
   // Password verification
   const [deletePassword, setDeletePassword] = useState('');
