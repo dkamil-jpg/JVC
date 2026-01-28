@@ -113,7 +113,7 @@ const StaffPortal = () => {
   const handleOpenVisitModal = () => {
     setVisitForm({
       treatment: '',
-      notes: selectedPatient?.queue_reason || selectedPatient?.reason || '',
+      notes: '',  // Always empty on open
       consultant: user?.username || ''
     });
     setVisitModalOpen(true);
@@ -131,6 +131,33 @@ const StaffPortal = () => {
       const patientVisits = await getPatientVisits(selectedPatient.patient_id);
       setVisits(patientVisits);
       setSelectedPatient(prev => ({ ...prev, queue_reason: '', reason: '' }));
+    }
+  };
+
+  // Edit visit functions
+  const handleOpenEditVisit = (visit) => {
+    setEditingVisit(visit);
+    setEditVisitForm({
+      treatment: visit.treatment || '',
+      notes: visit.notes || ''
+    });
+    setEditVisitModalOpen(true);
+  };
+
+  const handleSaveEditVisit = async () => {
+    if (!editingVisit) return;
+    setEditVisitLoading(true);
+    try {
+      await api().put(`/visits/${editingVisit.visit_id}`, editVisitForm);
+      setEditVisitModalOpen(false);
+      setEditingVisit(null);
+      // Reload visits
+      const patientVisits = await getPatientVisits(selectedPatient.patient_id);
+      setVisits(patientVisits);
+    } catch (error) {
+      alert(error.response?.data?.detail || 'Failed to update visit');
+    } finally {
+      setEditVisitLoading(false);
     }
   };
 
