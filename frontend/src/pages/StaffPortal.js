@@ -647,17 +647,22 @@ const StaffPortal = () => {
               <div className="glass-panel rounded-xl overflow-hidden mb-10">
                 <table className="w-full text-left text-sm">
                   <thead className="bg-slate-800/50 text-xs uppercase text-slate-400">
-                    <tr><th className="p-3">Date</th><th className="p-3">Treatment</th><th className="p-3">Notes</th><th className="p-3">Consultant</th></tr>
+                    <tr><th className="p-3">Date & Time</th><th className="p-3">Treatment</th><th className="p-3">Notes</th><th className="p-3">Consultant</th><th className="p-3 w-10"></th></tr>
                   </thead>
                   <tbody>
                     {visits.length === 0 ? (
-                      <tr><td colSpan={4} className="p-4 text-center text-slate-500">No history</td></tr>
+                      <tr><td colSpan={5} className="p-4 text-center text-slate-500">No history</td></tr>
                     ) : visits.map((v, i) => (
                       <tr key={v.visit_id || i} className="border-b border-slate-800 hover:bg-slate-800/30">
-                        <td className="p-3 text-slate-400">{v.date?.slice(0, 10)}</td>
-                        <td className="p-3 font-bold text-slate-200">{v.treatment}</td>
+                        <td className="p-3 text-slate-400 whitespace-nowrap text-xs">{v.date?.replace('T', ' ').slice(0, 16)}</td>
+                        <td className="p-3 font-bold text-slate-200 whitespace-pre-line">{v.treatment}</td>
                         <td className="p-3 text-slate-400">{v.notes}</td>
                         <td className="p-3 text-slate-400">{v.consultant}</td>
+                        <td className="p-3">
+                          <button onClick={() => handleOpenEditVisit(v)} className="p-1.5 rounded hover:bg-slate-700 text-slate-500 hover:text-white" title="Edit visit">
+                            <Edit className="w-4 h-4" />
+                          </button>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
