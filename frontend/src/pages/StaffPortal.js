@@ -673,16 +673,41 @@ const StaffPortal = () => {
         <DialogContent className="bg-slate-900 border-slate-800">
           <DialogHeader><DialogTitle>New Consultation</DialogTitle></DialogHeader>
           <div className="space-y-4">
-            <div><label className="text-xs text-slate-400 uppercase">Treatment</label>
-              <Input value={visitForm.treatment} onChange={(e) => setVisitForm(prev => ({ ...prev, treatment: e.target.value }))} placeholder="e.g., IV Vitamin Infusion" className="bg-slate-950 border-slate-800 mt-1" /></div>
+            <div><label className="text-xs text-slate-400 uppercase">Treatment (one per line)</label>
+              <Textarea value={visitForm.treatment} onChange={(e) => setVisitForm(prev => ({ ...prev, treatment: e.target.value }))} placeholder="IV Vitamin C&#10;B12 Injection&#10;NAD+ Infusion" className="bg-slate-950 border-slate-800 mt-1 h-32 font-mono text-sm" /></div>
             <div><label className="text-xs text-slate-400 uppercase">Notes</label>
-              <Textarea value={visitForm.notes} onChange={(e) => setVisitForm(prev => ({ ...prev, notes: e.target.value }))} className="bg-slate-950 border-slate-800 mt-1 h-24" /></div>
+              <Input value={visitForm.notes} onChange={(e) => setVisitForm(prev => ({ ...prev, notes: e.target.value }))} placeholder="Optional notes..." className="bg-slate-950 border-slate-800 mt-1" /></div>
             <div><label className="text-xs text-slate-400 uppercase">Consultant</label>
               <Input value={visitForm.consultant} readOnly className="bg-slate-950 border-slate-800 mt-1 text-slate-500" /></div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setVisitModalOpen(false)}>Cancel</Button>
             <Button onClick={handleSubmitVisit} disabled={!visitForm.treatment} className="bg-blue-600 hover:bg-blue-700">Save Visit</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Visit Modal */}
+      <Dialog open={editVisitModalOpen} onOpenChange={setEditVisitModalOpen}>
+        <DialogContent className="bg-slate-900 border-slate-800">
+          <DialogHeader><DialogTitle>Edit Consultation</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            <div className="text-xs text-slate-500">
+              Date: <span className="text-slate-300">{editingVisit?.date?.replace('T', ' ').slice(0, 19)}</span> (cannot be changed)
+            </div>
+            <div><label className="text-xs text-slate-400 uppercase">Treatment (one per line)</label>
+              <Textarea value={editVisitForm.treatment} onChange={(e) => setEditVisitForm(prev => ({ ...prev, treatment: e.target.value }))} className="bg-slate-950 border-slate-800 mt-1 h-32 font-mono text-sm" /></div>
+            <div><label className="text-xs text-slate-400 uppercase">Notes</label>
+              <Input value={editVisitForm.notes} onChange={(e) => setEditVisitForm(prev => ({ ...prev, notes: e.target.value }))} className="bg-slate-950 border-slate-800 mt-1" /></div>
+            <div className="text-xs text-slate-500">
+              Consultant: <span className="text-slate-300">{editingVisit?.consultant}</span>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setEditVisitModalOpen(false); setEditingVisit(null); }}>Cancel</Button>
+            <Button onClick={handleSaveEditVisit} disabled={!editVisitForm.treatment || editVisitLoading} className="bg-blue-600 hover:bg-blue-700">
+              {editVisitLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Edit className="w-4 h-4 mr-2" />} Save Changes
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
