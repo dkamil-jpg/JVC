@@ -1180,10 +1180,10 @@ const StaffPortal = () => {
                   </div>
                 </TabsContent>
               )}
-            </ScrollArea>
+            </div>
           </Tabs>
 
-          <DialogFooter>
+          <DialogFooter className="flex-shrink-0">
             <Button variant="outline" onClick={() => setAdminModalOpen(false)}>Close</Button>
             <Button onClick={loadAdminData} disabled={adminLoading}>{adminLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4 mr-2" />}Refresh</Button>
           </DialogFooter>
