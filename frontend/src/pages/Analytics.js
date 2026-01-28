@@ -233,17 +233,19 @@ const Analytics = () => {
       {loading ? (
         <div className="flex items-center justify-center h-64"><Loader2 className="w-8 h-8 animate-spin text-violet-500" /></div>
       ) : (
-        <div className="container mx-auto px-4 pb-12" ref={printRef}>
+        <div className="container mx-auto px-3 md:px-4 pb-12" ref={printRef}>
           <Tabs defaultValue="overview" className="w-full">
-            <TabsList className="bg-slate-800 mb-6 flex-wrap">
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="consultants">Consultants</TabsTrigger>
-              <TabsTrigger value="treatments">Treatments</TabsTrigger>
-              <TabsTrigger value="patients">Patients</TabsTrigger>
-              <TabsTrigger value="queue">Queue & Alerts</TabsTrigger>
-              <TabsTrigger value="geographic">Geographic</TabsTrigger>
-              <TabsTrigger value="quality">Data Quality</TabsTrigger>
-            </TabsList>
+            <div className="overflow-x-auto mb-4 md:mb-6 pb-2">
+              <TabsList className="bg-slate-800 min-w-max">
+                <TabsTrigger value="overview" className="text-xs md:text-sm">Overview</TabsTrigger>
+                <TabsTrigger value="consultants" className="text-xs md:text-sm">Staff</TabsTrigger>
+                <TabsTrigger value="treatments" className="text-xs md:text-sm">Treatments</TabsTrigger>
+                <TabsTrigger value="patients" className="text-xs md:text-sm">Patients</TabsTrigger>
+                <TabsTrigger value="queue" className="text-xs md:text-sm">Queue</TabsTrigger>
+                <TabsTrigger value="geographic" className="text-xs md:text-sm">Geo</TabsTrigger>
+                <TabsTrigger value="quality" className="text-xs md:text-sm">Quality</TabsTrigger>
+              </TabsList>
+            </div>
 
             {/* OVERVIEW TAB */}
             <TabsContent value="overview">
