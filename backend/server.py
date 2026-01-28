@@ -790,12 +790,50 @@ async def get_patient_pdf(patient_id: str, data: PasswordVerify, user: dict = De
     
     visits = await db.visits.find({"patient_id": patient_id}, {"_id": 0}).sort("date", -1).to_list(100)
     
+    # Get consents with signatures
+    consents = await db.consents.find({"patient_id": patient_id}, {"_id": 0}).sort("timestamp", -1).to_list(50)
+    
     visits_html = ""
     for v in visits:
         visits_html += f"<tr><td>{v.get('date', '')[:10]}</td><td>{v.get('treatment', '')}</td><td>{v.get('notes', '')}</td><td>{v.get('consultant', '')}</td></tr>"
     
     if not visits_html:
         visits_html = "<tr><td colspan='4' style='text-align:center'>No visits recorded</td></tr>"
+    
+    # Build consents HTML with signatures
+    consents_html = ""
+    for i, c in enumerate(consents):
+        timestamp = c.get('timestamp', '')[:19].replace('T', ' ') if c.get('timestamp') else ''
+        consents_html += f"""
+        <div class="consent-record">
+            <h3>Consent #{len(consents) - i} - {timestamp}</h3>
+            <div class="consent-grid">
+                <div><span class="label">Reason:</span> {c.get('reason_declared', '-')}</div>
+                <div><span class="label">Alerts:</span> <span class="alert">{c.get('alerts_declared', 'None')}</span></div>
+                <div><span class="label">Conditions:</span> {c.get('conditions_declared', '-')}</div>
+                <div><span class="label">Allergies:</span> <span class="alert">{c.get('allergies_declared', 'NKDA')}</span></div>
+                <div class="full-width"><span class="label">Medications:</span> {c.get('medications_declared', '-')}</div>
+            </div>
+            <div class="signatures">
+        """
+        if c.get('signature_data_processing'):
+            consents_html += f"""
+                <div class="signature-box">
+                    <p class="sig-label">Data Processing Consent:</p>
+                    <img src="{c.get('signature_data_processing')}" alt="Signature" />
+                </div>
+            """
+        if c.get('signature_medical_disclaimer'):
+            consents_html += f"""
+                <div class="signature-box">
+                    <p class="sig-label">Medical Disclaimer:</p>
+                    <img src="{c.get('signature_medical_disclaimer')}" alt="Signature" />
+                </div>
+            """
+        consents_html += "</div></div>"
+    
+    if not consents_html:
+        consents_html = "<p style='text-align:center; color:#666;'>No consent records found</p>"
     
     html = f"""<!DOCTYPE html>
 <html>
@@ -804,6 +842,7 @@ async def get_patient_pdf(patient_id: str, data: PasswordVerify, user: dict = De
         body {{ font-family: Arial, sans-serif; padding: 40px; color: #333; }}
         h1 {{ color: #2563eb; border-bottom: 3px solid #2563eb; padding-bottom: 10px; }}
         h2 {{ background: #f3f4f6; padding: 8px 12px; margin-top: 25px; font-size: 14px; border-left: 4px solid #2563eb; }}
+        h3 {{ font-size: 13px; color: #444; margin: 15px 0 10px 0; border-bottom: 1px solid #ddd; padding-bottom: 5px; }}
         .grid {{ display: grid; grid-template-columns: 150px 1fr; gap: 8px; margin-bottom: 15px; }}
         .label {{ font-weight: bold; color: #666; }}
         .value {{ color: #111; }}
@@ -812,6 +851,14 @@ async def get_patient_pdf(patient_id: str, data: PasswordVerify, user: dict = De
         th {{ background: #e5e7eb; padding: 10px; text-align: left; font-size: 12px; }}
         td {{ padding: 10px; border-bottom: 1px solid #e5e7eb; font-size: 12px; }}
         .footer {{ margin-top: 40px; text-align: center; color: #999; font-size: 10px; }}
+        .consent-record {{ background: #fafafa; border: 1px solid #e5e7eb; border-radius: 8px; padding: 15px; margin-bottom: 15px; page-break-inside: avoid; }}
+        .consent-grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 11px; margin-bottom: 10px; }}
+        .consent-grid .full-width {{ grid-column: span 2; }}
+        .signatures {{ display: flex; gap: 20px; flex-wrap: wrap; }}
+        .signature-box {{ flex: 1; min-width: 200px; border: 1px solid #ddd; border-radius: 4px; padding: 10px; background: #fff; }}
+        .signature-box img {{ width: 100%; height: 80px; object-fit: contain; }}
+        .sig-label {{ font-size: 10px; color: #10b981; margin-bottom: 5px; font-weight: bold; }}
+        @media print {{ .consent-record {{ page-break-inside: avoid; }} }}
     </style>
 </head>
 <body>
@@ -837,6 +884,8 @@ async def get_patient_pdf(patient_id: str, data: PasswordVerify, user: dict = De
         <div class="label">Surgeries:</div><div class="value">{patient.get('surgeries', '-')}</div>
         <div class="label">IV History:</div><div class="value">{patient.get('procedures', '-')}</div>
     </div>
+    <h2>Signed Consents & Declarations</h2>
+    {consents_html}
     <h2>Visit History</h2>
     <table><thead><tr><th>Date</th><th>Treatment</th><th>Notes</th><th>Consultant</th></tr></thead><tbody>{visits_html}</tbody></table>
     <div class="footer">Generated by Just Vitality Clinic on {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M')} | Exported by: {user['username']}</div>
