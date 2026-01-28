@@ -819,44 +819,48 @@ const StaffPortal = () => {
             <ScrollArea className="flex-1">
               {/* Users Tab */}
               <TabsContent value="users" className="mt-0">
-                <div className="glass-panel p-4 mb-4 rounded-xl">
+                <div className="glass-panel p-3 md:p-4 mb-4 rounded-xl">
                   <h4 className="text-sm font-bold text-slate-300 mb-3">Add New User</h4>
                   <div className="flex gap-2 flex-wrap">
-                    <Input placeholder="Username" value={newUserForm.username} onChange={(e) => setNewUserForm(prev => ({ ...prev, username: e.target.value }))} className="bg-slate-950 border-slate-800 w-40" />
-                    <Input type="password" placeholder="Password" value={newUserForm.password} onChange={(e) => setNewUserForm(prev => ({ ...prev, password: e.target.value }))} className="bg-slate-950 border-slate-800 w-40" />
+                    <Input placeholder="Username" value={newUserForm.username} onChange={(e) => setNewUserForm(prev => ({ ...prev, username: e.target.value }))} className="bg-slate-950 border-slate-800 w-32 md:w-40" />
+                    <Input type="password" placeholder="Password" value={newUserForm.password} onChange={(e) => setNewUserForm(prev => ({ ...prev, password: e.target.value }))} className="bg-slate-950 border-slate-800 w-32 md:w-40" />
                     <Select value={newUserForm.role} onValueChange={(v) => setNewUserForm(prev => ({ ...prev, role: v }))}>
-                      <SelectTrigger className="w-32 bg-slate-950 border-slate-800"><SelectValue /></SelectTrigger>
+                      <SelectTrigger className="w-28 md:w-32 bg-slate-950 border-slate-800"><SelectValue /></SelectTrigger>
                       <SelectContent className="bg-slate-900 border-slate-800">
                         {availableRoles.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
                       </SelectContent>
                     </Select>
-                    <Button onClick={handleAddUser} className="bg-emerald-600 hover:bg-emerald-700"><UserPlus className="w-4 h-4 mr-2" />Add</Button>
+                    <Button onClick={handleAddUser} className="bg-emerald-600 hover:bg-emerald-700"><UserPlus className="w-4 h-4 mr-1 md:mr-2" /><span className="hidden md:inline">Add</span></Button>
                   </div>
                 </div>
-                <table className="w-full text-sm">
-                  <thead className="bg-slate-800/50 text-xs uppercase text-slate-400"><tr><th className="p-3 text-left">Username</th><th className="p-3 text-left">Role</th><th className="p-3 text-left">Status</th><th className="p-3 text-left">Last Login</th><th className="p-3 text-left">Actions</th></tr></thead>
-                  <tbody>
-                    {adminUsers.map((u, i) => (
-                      <tr key={i} className="border-b border-slate-800">
-                        <td className="p-3 font-bold text-slate-200">{u.username}</td>
-                        <td className="p-3"><Badge variant="outline" className={u.role === 'ADMIN' ? 'border-violet-500 text-violet-400' : u.role === 'MANAGER' ? 'border-emerald-500 text-emerald-400' : 'border-slate-600 text-slate-400'}>{u.role}</Badge></td>
-                        <td className="p-3">{u.active ? <Badge className="bg-emerald-500/20 text-emerald-400">Active</Badge> : <Badge className="bg-red-500/20 text-red-400">Locked</Badge>}</td>
-                        <td className="p-3 text-slate-500 text-xs">{u.lastLogin || u.last_login || '-'}</td>
-                        <td className="p-3">
-                          {/* Managers cannot modify admins */}
-                          {(isAdmin || u.role !== 'ADMIN') && (
-                            <div className="flex gap-2">
-                              <Button size="sm" variant="outline" onClick={() => handleResetPassword(u.username)} className="h-8 px-2"><Key className="w-3 h-3" /></Button>
-                              <Button size="sm" variant="outline" onClick={() => handleToggleUserActive(u.username, u.active)} className={`h-8 px-2 ${u.active ? 'text-red-400' : 'text-emerald-400'}`}>
-                                {u.active ? <Lock className="w-3 h-3" /> : <Unlock className="w-3 h-3" />}
-                              </Button>
-                            </div>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                <div className="border border-slate-800 rounded-lg overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs md:text-sm" style={{ minWidth: '400px' }}>
+                      <thead className="bg-slate-800/50 text-xs uppercase text-slate-400"><tr><th className="p-2 md:p-3 text-left">User</th><th className="p-2 md:p-3 text-left">Role</th><th className="p-2 md:p-3 text-left">Status</th><th className="p-2 md:p-3 text-left hidden md:table-cell">Last Login</th><th className="p-2 md:p-3 text-left">Actions</th></tr></thead>
+                      <tbody>
+                        {adminUsers.map((u, i) => (
+                          <tr key={i} className="border-b border-slate-800">
+                            <td className="p-2 md:p-3 font-bold text-slate-200">{u.username}</td>
+                            <td className="p-2 md:p-3"><Badge variant="outline" className={`text-[10px] md:text-xs ${u.role === 'ADMIN' ? 'border-violet-500 text-violet-400' : u.role === 'MANAGER' ? 'border-emerald-500 text-emerald-400' : 'border-slate-600 text-slate-400'}`}>{u.role}</Badge></td>
+                            <td className="p-2 md:p-3">{u.active ? <Badge className="bg-emerald-500/20 text-emerald-400 text-[10px] md:text-xs">Active</Badge> : <Badge className="bg-red-500/20 text-red-400 text-[10px] md:text-xs">Locked</Badge>}</td>
+                            <td className="p-2 md:p-3 text-slate-500 text-xs hidden md:table-cell">{u.lastLogin || u.last_login || '-'}</td>
+                            <td className="p-2 md:p-3">
+                              {/* Managers cannot modify admins */}
+                              {(isAdmin || u.role !== 'ADMIN') && (
+                                <div className="flex gap-1 md:gap-2">
+                                  <Button size="sm" variant="outline" onClick={() => handleResetPassword(u.username)} className="h-7 md:h-8 px-1.5 md:px-2"><Key className="w-3 h-3" /></Button>
+                                  <Button size="sm" variant="outline" onClick={() => handleToggleUserActive(u.username, u.active)} className={`h-7 md:h-8 px-1.5 md:px-2 ${u.active ? 'text-red-400' : 'text-emerald-400'}`}>
+                                    {u.active ? <Lock className="w-3 h-3" /> : <Unlock className="w-3 h-3" />}
+                                  </Button>
+                                </div>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
               </TabsContent>
 
               {/* Login Log Tab */}
