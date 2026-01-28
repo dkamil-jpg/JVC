@@ -22,7 +22,33 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem('jv_token'));
   const [loading, setLoading] = useState(true);
   const inactivityTimerRef = useRef(null);
-  const lastActivityRef = useRef(Date.now());
+  const lastActivityRef = useRef(0);
+
+  // Initialize lastActivityRef after mount
+  useEffect(() => {
+    lastActivityRef.current = Date.now();
+  }, []);
+
+  // Logout function - defined early to be used in api callback
+  const logout = useCallback(async () => {
+    // Clear timer first
+    if (inactivityTimerRef.current) {
+      clearTimeout(inactivityTimerRef.current);
+      inactivityTimerRef.current = null;
+    }
+    try {
+      const instance = axios.create({
+        baseURL: API,
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      });
+      await instance.post('/auth/logout');
+    } catch (e) {
+      // Ignore errors on logout
+    }
+    localStorage.removeItem('jv_token');
+    setToken(null);
+    setUser(null);
+  }, [token]);
 
   const api = useCallback(() => {
     const instance = axios.create({
@@ -34,7 +60,10 @@ export const AuthProvider = ({ children }) => {
       response => response,
       error => {
         if (error.response?.status === 401) {
-          logout();
+          // Clear state on 401
+          localStorage.removeItem('jv_token');
+          setToken(null);
+          setUser(null);
         }
         return Promise.reject(error);
       }
@@ -43,20 +72,20 @@ export const AuthProvider = ({ children }) => {
     return instance;
   }, [token]);
 
-  // Auto-logout function
-  const performAutoLogout = useCallback(async () => {
+  // Auto-logout function for inactivity
+  const performAutoLogout = useCallback(() => {
     console.log('Auto-logout: User inactive for 5 minutes');
-    try {
-      await api().post('/auth/logout');
-    } catch (e) {
-      // Ignore errors on logout
+    // Clear timer
+    if (inactivityTimerRef.current) {
+      clearTimeout(inactivityTimerRef.current);
+      inactivityTimerRef.current = null;
     }
     localStorage.removeItem('jv_token');
     setToken(null);
     setUser(null);
     // Redirect to login page
     window.location.href = '/login';
-  }, [api]);
+  }, []);
 
   // Reset inactivity timer
   const resetInactivityTimer = useCallback(() => {
@@ -149,17 +178,6 @@ export const AuthProvider = ({ children }) => {
       return { success: true };
     }
     return { success: false, error: response.data.error };
-  };
-
-  const logout = async () => {
-    try {
-      await api().post('/auth/logout');
-    } catch (e) {
-      // Ignore errors on logout
-    }
-    localStorage.removeItem('jv_token');
-    setToken(null);
-    setUser(null);
   };
 
   const changePassword = async (currentPassword, newPassword) => {
