@@ -865,7 +865,7 @@ const StaffPortal = () => {
 
               {/* Login Log Tab */}
               <TabsContent value="login-log" className="mt-0">
-                <div className="flex justify-between items-center mb-4 flex-wrap gap-2">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
                   <h4 className="text-sm font-bold text-slate-300">Login Audit Log</h4>
                   <div className="flex gap-2">
                     {isAdmin && (
@@ -888,10 +888,10 @@ const StaffPortal = () => {
                           a.click();
                           URL.revokeObjectURL(url);
                         }}>
-                          <Download className="w-3 h-3 mr-2" />Export CSV
+                          <Download className="w-3 h-3 mr-1" /><span className="hidden sm:inline">Export </span>CSV
                         </Button>
                         <Button size="sm" variant="destructive" onClick={handleClearLoginAudit}>
-                          <Trash2 className="w-3 h-3 mr-2" />Clear
+                          <Trash2 className="w-3 h-3 mr-1" /><span className="hidden sm:inline">Clear</span>
                         </Button>
                       </>
                     )}
@@ -899,29 +899,29 @@ const StaffPortal = () => {
                 </div>
                 <div className="border border-slate-800 rounded-lg overflow-hidden">
                   <div className="overflow-x-auto max-h-[400px] overflow-y-auto">
-                    <table className="w-full text-xs" style={{ minWidth: '500px' }}>
-                      <thead className="bg-slate-800/50 text-slate-400 uppercase sticky top-0">
+                    <table className="w-full text-xs" style={{ minWidth: '350px' }}>
+                      <thead className="bg-slate-800/50 text-slate-400 uppercase sticky top-0 text-[10px] md:text-xs">
                         <tr>
-                          <th className="p-2 text-left whitespace-nowrap">Timestamp</th>
+                          <th className="p-2 text-left whitespace-nowrap">Time</th>
                           <th className="p-2 text-left whitespace-nowrap">User</th>
                           <th className="p-2 text-left whitespace-nowrap">Event</th>
-                          <th className="p-2 text-left">Details</th>
+                          <th className="p-2 text-left hidden sm:table-cell">Details</th>
                         </tr>
                       </thead>
                       <tbody>
                         {loginAudit.map((log, i) => (
                           <tr key={i} className="border-b border-slate-800 hover:bg-slate-800/30">
-                            <td className="p-2 text-slate-500 whitespace-nowrap">{(log.ts || log.timestamp)?.slice(0, 19).replace('T', ' ')}</td>
+                            <td className="p-2 text-slate-500 whitespace-nowrap text-[10px]">{(log.ts || log.timestamp)?.slice(5, 16).replace('T', ' ')}</td>
                             <td className="p-2 font-bold text-slate-300">{log.username}</td>
-                            <td className="p-2"><Badge className={log.event === 'SUCCESS' ? 'bg-emerald-500/20 text-emerald-400' : log.event === 'FAIL' || log.event === 'LOCKED' ? 'bg-red-500/20 text-red-400' : 'bg-slate-500/20 text-slate-400'}>{log.event}</Badge></td>
-                            <td className="p-2 text-slate-500">{log.details}</td>
+                            <td className="p-2"><Badge className={`text-[9px] md:text-[10px] ${log.event === 'SUCCESS' ? 'bg-emerald-500/20 text-emerald-400' : log.event === 'FAIL' || log.event === 'LOCKED' ? 'bg-red-500/20 text-red-400' : 'bg-slate-500/20 text-slate-400'}`}>{log.event}</Badge></td>
+                            <td className="p-2 text-slate-500 hidden sm:table-cell text-[10px]">{log.details}</td>
                           </tr>
                         ))}
                       </tbody>
                     </table>
                   </div>
                 </div>
-                <p className="text-xs text-slate-600 mt-2">Showing {loginAudit.length} records.</p>
+                <p className="text-[10px] md:text-xs text-slate-600 mt-2">Showing {loginAudit.length} records.</p>
               </TabsContent>
 
               {/* System Audit Tab - ALL OPERATIONS */}
