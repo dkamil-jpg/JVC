@@ -504,21 +504,23 @@ const StaffPortal = () => {
           <div className="flex-1 flex flex-col h-full overflow-hidden">
             {/* Patient Header */}
             <div className="p-4 md:p-6 border-b border-slate-800 flex flex-col md:flex-row justify-between items-start gap-4 bg-slate-900/50 shrink-0">
-              <div>
-                <h1 className="text-2xl font-bold uppercase text-white">{selectedPatient.name}</h1>
-                <p className="text-xs text-slate-500 font-mono">ID: {selectedPatient.patient_id}</p>
+              <div className="min-w-0 flex-shrink-0">
+                <h1 className="text-xl md:text-2xl font-bold uppercase text-white truncate">{selectedPatient.name}</h1>
+                <p className="text-xs text-slate-500 font-mono truncate">ID: {selectedPatient.patient_id}</p>
               </div>
-              <div className="flex flex-wrap gap-2">
-                <Button onClick={() => navigate('/kiosk')} className="bg-emerald-600 hover:bg-emerald-700"><Plus className="w-4 h-4 mr-2" /> New Patient</Button>
-                <Button variant="outline" onClick={handleShowAudit} className="border-slate-700"><History className="w-4 h-4 mr-2" /> Change Log</Button>
-                <Button variant="outline" onClick={handleShowConsents} className="border-slate-700"><FileSignature className="w-4 h-4 mr-2" /> Consents</Button>
-                {(isAdmin || isManager) && (
-                  <Button variant="outline" onClick={() => setPdfModalOpen(true)} className="border-slate-700"><Download className="w-4 h-4 mr-2" /> Export PDF</Button>
-                )}
-                <Button variant={editMode ? "default" : "outline"} onClick={() => setEditMode(!editMode)} className={editMode ? "bg-emerald-600" : "border-slate-700"}>
-                  <Edit className="w-4 h-4 mr-2" /> {editMode ? 'Editing...' : 'Edit Profile'}
-                </Button>
-                <Button onClick={handleOpenVisitModal} className="bg-blue-600 hover:bg-blue-700"><Plus className="w-4 h-4 mr-2" /> New Visit</Button>
+              <div className="w-full md:w-auto overflow-x-auto pb-2 md:pb-0">
+                <div className="flex flex-nowrap md:flex-wrap gap-2 min-w-max md:min-w-0">
+                  <Button size="sm" onClick={() => navigate('/kiosk')} className="bg-emerald-600 hover:bg-emerald-700 text-xs md:text-sm whitespace-nowrap"><Plus className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" /> <span className="hidden sm:inline">New</span> Patient</Button>
+                  <Button size="sm" variant="outline" onClick={handleShowAudit} className="border-slate-700 text-xs md:text-sm whitespace-nowrap"><History className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" /> <span className="hidden sm:inline">Change</span> Log</Button>
+                  <Button size="sm" variant="outline" onClick={handleShowConsents} className="border-slate-700 text-xs md:text-sm whitespace-nowrap"><FileSignature className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" /> Consents</Button>
+                  {(isAdmin || isManager) && (
+                    <Button size="sm" variant="outline" onClick={() => setPdfModalOpen(true)} className="border-slate-700 text-xs md:text-sm whitespace-nowrap"><Download className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" /> <span className="hidden sm:inline">Export</span> PDF</Button>
+                  )}
+                  <Button size="sm" variant={editMode ? "default" : "outline"} onClick={() => setEditMode(!editMode)} className={`text-xs md:text-sm whitespace-nowrap ${editMode ? "bg-emerald-600" : "border-slate-700"}`}>
+                    <Edit className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" /> {editMode ? 'Editing' : 'Edit'}
+                  </Button>
+                  <Button size="sm" onClick={handleOpenVisitModal} className="bg-blue-600 hover:bg-blue-700 text-xs md:text-sm whitespace-nowrap"><Plus className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" /> <span className="hidden sm:inline">New</span> Visit</Button>
+                </div>
               </div>
             </div>
 
