@@ -151,8 +151,8 @@ export const AuthProvider = ({ children }) => {
       }
     };
 
-    // Activity events
-    const events = ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart', 'click'];
+    // Only conscious user actions - NOT mousemove or scroll
+    const events = ['click', 'keydown', 'touchstart'];
     
     // Add listeners
     events.forEach(event => {
