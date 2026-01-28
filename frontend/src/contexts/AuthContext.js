@@ -161,7 +161,7 @@ export const AuthProvider = ({ children }) => {
 
     // Start initial timer
     startTimer();
-    console.log('Inactivity timer started - warning at 4.5 min, logout at 5 min');
+    console.log('Inactivity timer started - only CLICKS and KEYPRESS reset the timer');
 
     // Cleanup
     return () => {
