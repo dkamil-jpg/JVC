@@ -658,11 +658,11 @@ const StaffPortal = () => {
 
       {/* Audit Modal */}
       <Dialog open={auditModalOpen} onOpenChange={setAuditModalOpen}>
-        <DialogContent className="bg-slate-900 border-slate-800 max-w-2xl">
-          <DialogHeader><DialogTitle>Change Log - {selectedPatient?.name}</DialogTitle></DialogHeader>
-          <ScrollArea className="max-h-[400px]">
+        <DialogContent className="bg-slate-900 border-slate-800 max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
+          <DialogHeader className="flex-shrink-0"><DialogTitle>Change Log - {selectedPatient?.name}</DialogTitle></DialogHeader>
+          <div className="flex-1 overflow-y-auto min-h-0">
             <table className="w-full text-xs">
-              <thead className="bg-slate-800/50 text-slate-400 uppercase"><tr><th className="p-2 text-left">Date</th><th className="p-2 text-left">Field</th><th className="p-2 text-left">Old</th><th className="p-2 text-left">New</th><th className="p-2 text-left">User</th></tr></thead>
+              <thead className="bg-slate-800/50 text-slate-400 uppercase sticky top-0"><tr><th className="p-2 text-left">Date</th><th className="p-2 text-left">Field</th><th className="p-2 text-left">Old</th><th className="p-2 text-left">New</th><th className="p-2 text-left">User</th></tr></thead>
               <tbody>
                 {auditLogs.length === 0 ? <tr><td colSpan={5} className="p-4 text-center text-slate-500">No changes</td></tr>
                   : auditLogs.map((log, i) => (
@@ -676,8 +676,8 @@ const StaffPortal = () => {
                   ))}
               </tbody>
             </table>
-          </ScrollArea>
-          <DialogFooter><Button variant="outline" onClick={() => setAuditModalOpen(false)}>Close</Button></DialogFooter>
+          </div>
+          <DialogFooter className="flex-shrink-0"><Button variant="outline" onClick={() => setAuditModalOpen(false)}>Close</Button></DialogFooter>
         </DialogContent>
       </Dialog>
 
