@@ -798,16 +798,16 @@ const StaffPortal = () => {
 
       {/* Admin/Manager Panel Modal */}
       <Dialog open={adminModalOpen} onOpenChange={setAdminModalOpen}>
-        <DialogContent className="bg-slate-900 border-slate-800 max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-          <DialogHeader>
+        <DialogContent className="bg-slate-900 border-slate-800 max-w-4xl max-h-[85vh] overflow-hidden flex flex-col">
+          <DialogHeader className="flex-shrink-0">
             <DialogTitle className="flex items-center gap-2">
               {isAdmin ? <Shield className="w-5 h-5 text-violet-500" /> : <Crown className="w-5 h-5 text-emerald-500" />}
               {isAdmin ? 'Admin Panel' : 'Manager Panel'}
             </DialogTitle>
           </DialogHeader>
           
-          <Tabs defaultValue="users" className="flex-1 overflow-hidden flex flex-col">
-            <div className="overflow-x-auto mb-4 pb-2">
+          <Tabs defaultValue="users" className="flex-1 overflow-hidden flex flex-col min-h-0">
+            <div className="overflow-x-auto flex-shrink-0 pb-2">
               <TabsList className="bg-slate-800 min-w-max">
                 <TabsTrigger value="users" className="text-xs md:text-sm"><Users className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />Users</TabsTrigger>
                 <TabsTrigger value="login-log" className="text-xs md:text-sm"><Key className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />Login</TabsTrigger>
@@ -816,7 +816,7 @@ const StaffPortal = () => {
               </TabsList>
             </div>
 
-            <ScrollArea className="flex-1">
+            <div className="flex-1 overflow-y-auto min-h-0 pr-1">
               {/* Users Tab */}
               <TabsContent value="users" className="mt-0">
                 <div className="glass-panel p-3 md:p-4 mb-4 rounded-xl">
