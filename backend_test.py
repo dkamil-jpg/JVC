@@ -258,14 +258,11 @@ class JustVitalityAPITester:
         """Test analytics and reporting endpoints"""
         self.log("\n=== ANALYTICS & REPORTS ===")
         
-        # Get reports summary
-        self.run_test("Reports Summary", "GET", "reports/summary", 200)
+        # Get comprehensive reports
+        self.run_test("Comprehensive Reports", "GET", "reports/comprehensive", 200)
         
         # Get consultants list
         self.run_test("Get Consultants", "GET", "reports/consultants", 200)
-        
-        # Get visits report
-        self.run_test("Visits Report", "GET", "reports/visits", 200)
         
     def test_queue_management(self):
         """Test queue management"""
