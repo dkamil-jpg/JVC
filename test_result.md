@@ -101,3 +101,52 @@
 #====================================================================================================
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
+
+user_problem_statement: |
+  Dwie zmiany do wprowadzenia:
+  1. Poprawić wyświetlanie wersji mobilnej - przyciski i kolumny logów są ucięte
+  2. Dodać automatyczne wylogowanie użytkownika po 5 minutach bezczynności
+
+backend:
+  - task: "Auto-logout functionality (5 min inactivity)"
+    implemented: true
+    working: "NA"
+    file: "frontend/src/contexts/AuthContext.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Implemented auto-logout timer in AuthContext - tracks user activity and logs out after 5 minutes of inactivity"
+
+frontend:
+  - task: "Mobile responsive fixes - buttons and log columns"
+    implemented: true
+    working: "NA"
+    file: "frontend/src/pages/StaffPortal.js, frontend/src/pages/Analytics.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Fixed mobile responsiveness: scrollable buttons in patient header, smaller tabs in Admin Panel, responsive log tables with hidden columns on mobile, scrollable analytics tabs"
+
+metadata:
+  created_by: "main_agent"
+  version: "1.0"
+  test_sequence: 1
+  run_ui: true
+
+test_plan:
+  current_focus:
+    - "Mobile responsive UI"
+    - "Auto-logout functionality"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication:
+  - agent: "main"
+    message: "Implemented both requested changes: 1) Mobile responsiveness fixes for buttons and log tables with scroll functionality, 2) Auto-logout after 5 minutes inactivity using activity event listeners"
