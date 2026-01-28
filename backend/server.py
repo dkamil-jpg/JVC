@@ -1064,6 +1064,40 @@ async def get_patient_visits(patient_id: str, user: dict = Depends(verify_token)
     visits = await db.visits.find({"patient_id": patient_id}, {"_id": 0}).sort("date", -1).to_list(100)
     return visits
 
+@api_router.put("/visits/{visit_id}")
+async def update_visit(visit_id: str, data: dict, user: dict = Depends(verify_token)):
+    """Update a visit - logs changes to audit"""
+    visit = await db.visits.find_one({"visit_id": visit_id})
+    if not visit:
+        raise HTTPException(status_code=404, detail="Visit not found")
+    
+    patient_id = visit.get("patient_id")
+    changes_made = []
+    
+    # Only allow updating treatment and notes, not date
+    if "treatment" in data and data["treatment"] != visit.get("treatment"):
+        old_val = visit.get("treatment", "")
+        new_val = data["treatment"]
+        await log_system_event("UPDATE", f"Visit treatment changed", user["username"], patient_id, "visit_treatment", old_val, new_val)
+        changes_made.append("treatment")
+    
+    if "notes" in data and data["notes"] != visit.get("notes"):
+        old_val = visit.get("notes", "")
+        new_val = data["notes"]
+        await log_system_event("UPDATE", f"Visit notes changed", user["username"], patient_id, "visit_notes", old_val[:100], new_val[:100])
+        changes_made.append("notes")
+    
+    if changes_made:
+        update_data = {}
+        if "treatment" in data:
+            update_data["treatment"] = data["treatment"]
+        if "notes" in data:
+            update_data["notes"] = data["notes"]
+        
+        await db.visits.update_one({"visit_id": visit_id}, {"$set": update_data})
+    
+    return {"success": True, "changes": changes_made}
+
 @api_router.get("/patients/{patient_id}/consents")
 async def get_patient_consents(patient_id: str, user: dict = Depends(verify_token)):
     """Get all consent records for a patient with signatures"""
