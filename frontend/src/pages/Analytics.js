@@ -193,38 +193,40 @@ const Analytics = () => {
     <div data-testid="analytics-view" className="min-h-screen bg-slate-950 text-slate-200">
       {/* Header */}
       <div className="border-b border-slate-800 bg-slate-900/50 backdrop-blur sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <button onClick={() => navigate('/')} className="p-2 rounded-full hover:bg-slate-800 text-slate-400 hover:text-white"><ArrowLeft className="w-5 h-5" /></button>
+        <div className="container mx-auto px-3 md:px-4 py-3 md:py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+          <div className="flex items-center gap-3 md:gap-4">
+            <button onClick={() => navigate('/')} className="p-2 rounded-full hover:bg-slate-800 text-slate-400 hover:text-white"><ArrowLeft className="w-4 h-4 md:w-5 md:h-5" /></button>
             <div>
-              <h1 className="text-2xl font-bold"><span className="text-violet-500">Clinic</span> Analytics</h1>
-              <p className="text-xs text-slate-500">Comprehensive Business Intelligence</p>
+              <h1 className="text-lg md:text-2xl font-bold"><span className="text-violet-500">Clinic</span> Analytics</h1>
+              <p className="text-[10px] md:text-xs text-slate-500 hidden sm:block">Comprehensive Business Intelligence</p>
             </div>
           </div>
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-slate-400">Logged in as <span className="text-white font-medium">{user?.username}</span></span>
-            <Button variant="ghost" onClick={logout} className="text-red-400 hover:text-red-300">Logout</Button>
+          <div className="flex items-center gap-2 md:gap-4 self-end sm:self-auto">
+            <span className="text-xs md:text-sm text-slate-400">Logged as <span className="text-white font-medium">{user?.username}</span></span>
+            <Button variant="ghost" size="sm" onClick={logout} className="text-red-400 hover:text-red-300 text-xs md:text-sm">Logout</Button>
           </div>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="container mx-auto px-4 py-6">
-        <div className="glass-panel p-4 rounded-xl flex flex-wrap gap-4 items-end">
-          <div>
-            <Label className="text-xs text-slate-400 uppercase">Start Date</Label>
-            <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="bg-slate-950 border-slate-800 w-40 mt-1" />
+      <div className="container mx-auto px-3 md:px-4 py-4 md:py-6">
+        <div className="glass-panel p-3 md:p-4 rounded-xl flex flex-wrap gap-2 md:gap-4 items-end">
+          <div className="flex-1 min-w-[120px]">
+            <Label className="text-[10px] md:text-xs text-slate-400 uppercase">Start</Label>
+            <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="bg-slate-950 border-slate-800 w-full mt-1 text-xs md:text-sm" />
           </div>
-          <div>
-            <Label className="text-xs text-slate-400 uppercase">End Date</Label>
-            <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="bg-slate-950 border-slate-800 w-40 mt-1" />
+          <div className="flex-1 min-w-[120px]">
+            <Label className="text-[10px] md:text-xs text-slate-400 uppercase">End</Label>
+            <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="bg-slate-950 border-slate-800 w-full mt-1 text-xs md:text-sm" />
           </div>
-          <Button onClick={loadData} disabled={loading} className="bg-violet-600 hover:bg-violet-700">
-            {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Filter className="w-4 h-4 mr-2" />} Apply
-          </Button>
-          <Button onClick={handleExportReport} variant="outline" className="border-slate-700">
-            <Download className="w-4 h-4 mr-2" /> Export Full Report (PDF)
-          </Button>
+          <div className="flex gap-2 w-full sm:w-auto">
+            <Button size="sm" onClick={loadData} disabled={loading} className="bg-violet-600 hover:bg-violet-700 flex-1 sm:flex-none">
+              {loading ? <Loader2 className="w-3 h-3 md:w-4 md:h-4 animate-spin" /> : <Filter className="w-3 h-3 md:w-4 md:h-4" />}<span className="ml-1 md:ml-2">Apply</span>
+            </Button>
+            <Button size="sm" onClick={handleExportReport} variant="outline" className="border-slate-700 flex-1 sm:flex-none">
+              <Download className="w-3 h-3 md:w-4 md:h-4" /><span className="ml-1 md:ml-2 hidden sm:inline">Export</span><span className="ml-1 sm:hidden">PDF</span>
+            </Button>
+          </div>
         </div>
       </div>
 
