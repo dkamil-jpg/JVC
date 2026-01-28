@@ -22,16 +22,9 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem('jv_token'));
   const [loading, setLoading] = useState(true);
   const inactivityTimerRef = useRef(null);
-  const lastActivityRef = useRef(0);
 
-  // Initialize lastActivityRef after mount
-  useEffect(() => {
-    lastActivityRef.current = Date.now();
-  }, []);
-
-  // Logout function - defined early to be used in api callback
+  // Logout function
   const logout = useCallback(async () => {
-    // Clear timer first
     if (inactivityTimerRef.current) {
       clearTimeout(inactivityTimerRef.current);
       inactivityTimerRef.current = null;
@@ -60,7 +53,6 @@ export const AuthProvider = ({ children }) => {
       response => response,
       error => {
         if (error.response?.status === 401) {
-          // Clear state on 401
           localStorage.removeItem('jv_token');
           setToken(null);
           setUser(null);
@@ -72,41 +64,9 @@ export const AuthProvider = ({ children }) => {
     return instance;
   }, [token]);
 
-  // Auto-logout function for inactivity
-  const performAutoLogout = useCallback(() => {
-    console.log('Auto-logout: User inactive for 5 minutes');
-    // Clear timer
-    if (inactivityTimerRef.current) {
-      clearTimeout(inactivityTimerRef.current);
-      inactivityTimerRef.current = null;
-    }
-    localStorage.removeItem('jv_token');
-    setToken(null);
-    setUser(null);
-    // Redirect to login page
-    window.location.href = '/login';
-  }, []);
-
-  // Reset inactivity timer
-  const resetInactivityTimer = useCallback(() => {
-    lastActivityRef.current = Date.now();
-    
-    if (inactivityTimerRef.current) {
-      clearTimeout(inactivityTimerRef.current);
-    }
-    
-    // Only set timer if user is logged in
-    if (token && user) {
-      inactivityTimerRef.current = setTimeout(() => {
-        performAutoLogout();
-      }, INACTIVITY_TIMEOUT);
-    }
-  }, [token, user, performAutoLogout]);
-
-  // Set up activity listeners when user is logged in
+  // Auto-logout after inactivity
   useEffect(() => {
     if (!user || !token) {
-      // Clear timer if not logged in
       if (inactivityTimerRef.current) {
         clearTimeout(inactivityTimerRef.current);
         inactivityTimerRef.current = null;
@@ -114,43 +74,48 @@ export const AuthProvider = ({ children }) => {
       return;
     }
 
-    // Activity events to track
-    const activityEvents = ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart', 'click'];
-    
-    // Throttled activity handler - only update every 30 seconds to avoid performance issues
-    let throttleTimer = null;
-    const handleActivity = () => {
-      if (!throttleTimer) {
-        throttleTimer = setTimeout(() => {
-          throttleTimer = null;
-          resetInactivityTimer();
-        }, 30000); // Throttle: update timer max once per 30 seconds
-      }
-      // Always update last activity time immediately
-      lastActivityRef.current = Date.now();
+    const performAutoLogout = () => {
+      console.log('Auto-logout: User inactive for 5 minutes');
+      localStorage.removeItem('jv_token');
+      setToken(null);
+      setUser(null);
+      window.location.href = '/login';
     };
 
-    // Add event listeners
-    activityEvents.forEach(event => {
-      document.addEventListener(event, handleActivity, { passive: true });
+    const startTimer = () => {
+      if (inactivityTimerRef.current) {
+        clearTimeout(inactivityTimerRef.current);
+      }
+      inactivityTimerRef.current = setTimeout(performAutoLogout, INACTIVITY_TIMEOUT);
+    };
+
+    // Reset timer on any activity
+    const handleActivity = () => {
+      startTimer();
+    };
+
+    // Activity events
+    const events = ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart', 'click'];
+    
+    // Add listeners
+    events.forEach(event => {
+      window.addEventListener(event, handleActivity, { passive: true });
     });
 
     // Start initial timer
-    resetInactivityTimer();
+    startTimer();
+    console.log('Inactivity timer started - will logout after 5 minutes of inactivity');
 
     // Cleanup
     return () => {
-      activityEvents.forEach(event => {
-        document.removeEventListener(event, handleActivity);
+      events.forEach(event => {
+        window.removeEventListener(event, handleActivity);
       });
       if (inactivityTimerRef.current) {
         clearTimeout(inactivityTimerRef.current);
       }
-      if (throttleTimer) {
-        clearTimeout(throttleTimer);
-      }
     };
-  }, [user, token, resetInactivityTimer]);
+  }, [user, token]);
 
   useEffect(() => {
     const verifyToken = async () => {
