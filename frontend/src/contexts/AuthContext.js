@@ -4,9 +4,11 @@ import axios from 'axios';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-// Inactivity timeout - 5 minutes (300000ms), warning 30 seconds before
+// Inactivity timeout - 5 minutes in milliseconds
 const INACTIVITY_TIMEOUT = 5 * 60 * 1000;
-const WARNING_BEFORE_LOGOUT = 30 * 1000; // 30 seconds warning
+const WARNING_BEFORE_LOGOUT = 30 * 1000;
+const ACTIVITY_KEY = 'jv_last_activity';
+const CHECK_INTERVAL = 5000; // Check every 5 seconds
 
 const AuthContext = createContext(null);
 
@@ -27,19 +29,52 @@ export const AuthProvider = ({ children }) => {
   const [showInactivityWarning, setShowInactivityWarning] = useState(false);
   const [warningCountdown, setWarningCountdown] = useState(30);
   
-  const inactivityTimerRef = useRef(null);
-  const warningTimerRef = useRef(null);
   const countdownIntervalRef = useRef(null);
+  const checkIntervalRef = useRef(null);
+
+  // Get last activity from localStorage
+  const getLastActivity = () => {
+    const stored = localStorage.getItem(ACTIVITY_KEY);
+    return stored ? parseInt(stored, 10) : Date.now();
+  };
+
+  // Update last activity in localStorage
+  const updateLastActivity = () => {
+    localStorage.setItem(ACTIVITY_KEY, Date.now().toString());
+  };
+
+  // Check if session expired
+  const isSessionExpired = () => {
+    const lastActivity = getLastActivity();
+    const elapsed = Date.now() - lastActivity;
+    return elapsed >= INACTIVITY_TIMEOUT;
+  };
+
+  // Check if should show warning (30 sec before expiry)
+  const shouldShowWarning = () => {
+    const lastActivity = getLastActivity();
+    const elapsed = Date.now() - lastActivity;
+    return elapsed >= (INACTIVITY_TIMEOUT - WARNING_BEFORE_LOGOUT) && elapsed < INACTIVITY_TIMEOUT;
+  };
+
+  // Force logout
+  const forceLogout = useCallback(() => {
+    console.log('Session expired - logging out');
+    if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
+    if (checkIntervalRef.current) clearInterval(checkIntervalRef.current);
+    
+    localStorage.removeItem('jv_token');
+    localStorage.removeItem(ACTIVITY_KEY);
+    setShowInactivityWarning(false);
+    setToken(null);
+    setUser(null);
+    window.location.href = '/login';
+  }, []);
 
   // Logout function
   const logout = useCallback(async () => {
-    // Clear all timers
-    if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
-    if (warningTimerRef.current) clearTimeout(warningTimerRef.current);
     if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
-    inactivityTimerRef.current = null;
-    warningTimerRef.current = null;
-    countdownIntervalRef.current = null;
+    if (checkIntervalRef.current) clearInterval(checkIntervalRef.current);
     
     setShowInactivityWarning(false);
     
@@ -50,9 +85,10 @@ export const AuthProvider = ({ children }) => {
       });
       await instance.post('/auth/logout');
     } catch (e) {
-      // Ignore errors on logout
+      // Ignore errors
     }
     localStorage.removeItem('jv_token');
+    localStorage.removeItem(ACTIVITY_KEY);
     setToken(null);
     setUser(null);
   }, [token]);
@@ -68,6 +104,7 @@ export const AuthProvider = ({ children }) => {
       error => {
         if (error.response?.status === 401) {
           localStorage.removeItem('jv_token');
+          localStorage.removeItem(ACTIVITY_KEY);
           setToken(null);
           setUser(null);
         }
@@ -78,110 +115,135 @@ export const AuthProvider = ({ children }) => {
     return instance;
   }, [token]);
 
-  // Stay logged in - reset timer
+  // Stay logged in - reset activity
   const stayLoggedIn = useCallback(() => {
+    updateLastActivity();
     setShowInactivityWarning(false);
     setWarningCountdown(30);
-    if (warningTimerRef.current) clearTimeout(warningTimerRef.current);
-    if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
-    warningTimerRef.current = null;
-    countdownIntervalRef.current = null;
+    if (countdownIntervalRef.current) {
+      clearInterval(countdownIntervalRef.current);
+      countdownIntervalRef.current = null;
+    }
   }, []);
 
-  // Auto-logout after inactivity
+  // Main inactivity check effect
   useEffect(() => {
     if (!user || !token) {
-      if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
-      if (warningTimerRef.current) clearTimeout(warningTimerRef.current);
+      if (checkIntervalRef.current) clearInterval(checkIntervalRef.current);
       if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
-      inactivityTimerRef.current = null;
-      warningTimerRef.current = null;
-      countdownIntervalRef.current = null;
       setShowInactivityWarning(false);
       return;
     }
 
-    const performAutoLogout = () => {
-      console.log('Auto-logout: User inactive');
-      setShowInactivityWarning(false);
-      localStorage.removeItem('jv_token');
-      setToken(null);
-      setUser(null);
-      window.location.href = '/login';
-    };
+    // Check on mount - if already expired, logout immediately
+    if (isSessionExpired()) {
+      console.log('Session already expired on mount');
+      forceLogout();
+      return;
+    }
 
-    const showWarning = () => {
-      console.log('Showing inactivity warning - 30 seconds to logout');
-      setShowInactivityWarning(true);
-      setWarningCountdown(30);
-      
-      // Start countdown
-      countdownIntervalRef.current = setInterval(() => {
-        setWarningCountdown(prev => {
-          if (prev <= 1) {
-            clearInterval(countdownIntervalRef.current);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-      
-      // Set final logout timer
-      warningTimerRef.current = setTimeout(performAutoLogout, WARNING_BEFORE_LOGOUT);
-    };
+    // Initialize last activity if not set
+    if (!localStorage.getItem(ACTIVITY_KEY)) {
+      updateLastActivity();
+    }
 
-    const startTimer = () => {
-      // Clear existing timers
-      if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
-      if (warningTimerRef.current) clearTimeout(warningTimerRef.current);
-      if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
-      
-      // Hide warning if shown
-      setShowInactivityWarning(false);
-      setWarningCountdown(30);
-      
-      // Start timer for warning (5 min - 30 sec = 4.5 min)
-      inactivityTimerRef.current = setTimeout(showWarning, INACTIVITY_TIMEOUT - WARNING_BEFORE_LOGOUT);
-    };
-
-    // Reset timer on any activity (only if warning not shown)
+    // Handle user activity (clicks, keypress, touch)
     const handleActivity = () => {
-      if (!showInactivityWarning) {
-        startTimer();
+      // First check if already expired
+      if (isSessionExpired()) {
+        forceLogout();
+        return;
+      }
+      
+      // Update activity and hide warning
+      updateLastActivity();
+      if (showInactivityWarning) {
+        setShowInactivityWarning(false);
+        setWarningCountdown(30);
+        if (countdownIntervalRef.current) {
+          clearInterval(countdownIntervalRef.current);
+          countdownIntervalRef.current = null;
+        }
       }
     };
 
-    // Only conscious user actions - NOT mousemove or scroll
+    // Periodic check for inactivity (runs even without user interaction)
+    const checkInactivity = () => {
+      if (!user || !token) return;
+      
+      if (isSessionExpired()) {
+        forceLogout();
+        return;
+      }
+      
+      if (shouldShowWarning() && !showInactivityWarning) {
+        console.log('Showing inactivity warning');
+        setShowInactivityWarning(true);
+        setWarningCountdown(30);
+        
+        // Start countdown
+        if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
+        countdownIntervalRef.current = setInterval(() => {
+          setWarningCountdown(prev => {
+            if (prev <= 1) {
+              clearInterval(countdownIntervalRef.current);
+              countdownIntervalRef.current = null;
+              // Final check and logout
+              if (isSessionExpired()) {
+                forceLogout();
+              }
+              return 0;
+            }
+            return prev - 1;
+          });
+        }, 1000);
+      }
+    };
+
+    // Only clicks, keypress, touch - NO mousemove or scroll
     const events = ['click', 'keydown', 'touchstart'];
     
-    // Add listeners
     events.forEach(event => {
       window.addEventListener(event, handleActivity, { passive: true });
     });
 
-    // Start initial timer
-    startTimer();
-    console.log('Inactivity timer started - only CLICKS and KEYPRESS reset the timer');
+    // Start periodic check
+    checkIntervalRef.current = setInterval(checkInactivity, CHECK_INTERVAL);
+    
+    // Run initial check
+    checkInactivity();
+    
+    console.log('Inactivity monitor active - 5 min timeout, checking every 5 sec');
 
-    // Cleanup
     return () => {
       events.forEach(event => {
         window.removeEventListener(event, handleActivity);
       });
-      if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
-      if (warningTimerRef.current) clearTimeout(warningTimerRef.current);
+      if (checkIntervalRef.current) clearInterval(checkIntervalRef.current);
       if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
     };
-  }, [user, token, showInactivityWarning]);
+  }, [user, token, showInactivityWarning, forceLogout]);
 
+  // Verify token on mount
   useEffect(() => {
     const verifyToken = async () => {
       if (token) {
+        // First check if session expired based on localStorage
+        if (isSessionExpired()) {
+          console.log('Session expired - clearing token');
+          localStorage.removeItem('jv_token');
+          localStorage.removeItem(ACTIVITY_KEY);
+          setToken(null);
+          setLoading(false);
+          return;
+        }
+        
         try {
           const response = await api().get('/auth/me');
           setUser(response.data);
         } catch (error) {
           localStorage.removeItem('jv_token');
+          localStorage.removeItem(ACTIVITY_KEY);
           setToken(null);
         }
       }
@@ -195,6 +257,7 @@ export const AuthProvider = ({ children }) => {
     if (response.data.success) {
       const { token: newToken, username: user, role } = response.data;
       localStorage.setItem('jv_token', newToken);
+      updateLastActivity(); // Set initial activity timestamp
       setToken(newToken);
       setUser({ username: user, role });
       return { success: true };
@@ -221,7 +284,6 @@ export const AuthProvider = ({ children }) => {
       api,
       isAdmin: user?.role === 'ADMIN',
       isManager: user?.role === 'MANAGER' || user?.role === 'ADMIN',
-      // Inactivity warning
       showInactivityWarning,
       warningCountdown,
       stayLoggedIn
