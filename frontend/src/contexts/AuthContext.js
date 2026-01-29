@@ -68,7 +68,8 @@ export const AuthProvider = ({ children }) => {
     setShowInactivityWarning(false);
     setToken(null);
     setUser(null);
-    window.location.href = '/login';
+    // Redirect to home page (which will show login option)
+    window.location.replace('/');
   }, []);
 
   // Logout function
