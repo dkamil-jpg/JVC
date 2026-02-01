@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useClinic } from '../contexts/ClinicContext';
+import { useTheme } from '../contexts/ThemeContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -20,7 +21,7 @@ import {
   AlertTriangle, Pill, Heart, History, Plus, Edit, Trash2, ChevronDown,
   ChevronRight, Loader2, Shield, Users, Settings, Download, Key, UserPlus,
   ClipboardList, Lock, Unlock, Crown, Database, HardDrive, RotateCcw, Archive,
-  FileSignature
+  FileSignature, Sun, Moon
 } from 'lucide-react';
 
 const StaffPortal = () => {
