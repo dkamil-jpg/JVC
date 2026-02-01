@@ -128,7 +128,7 @@ const Login = () => {
 
       <footer className="mt-8 text-center text-xs text-slate-600">
         System by{' '}
-        <a href="mailto:dyczkowski.kamil@gmail.com" className="text-blue-500 hover:underline">
+        <a href="https://kamildyczkowski.com" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
           Kamil Dyczkowski
         </a>{' '}
         2026
