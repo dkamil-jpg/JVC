@@ -631,7 +631,7 @@ const Analytics = () => {
       )}
 
       <footer className="border-t border-slate-800 p-4 text-center text-xs text-slate-600">
-        System by <a href="mailto:dyczkowski.kamil@gmail.com" className="text-blue-500 hover:underline">Kamil Dyczkowski</a> 2026
+        System by <a href="https://kamildyczkowski.com" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">Kamil Dyczkowski</a> 2026
       </footer>
     </div>
   );
