@@ -66,6 +66,59 @@ body {
   min-height: 100vh;
 }
 
+html.light body {
+  background-color: #f8fafc;
+}
+
+/* Light mode overrides for main containers */
+html.light .bg-slate-950 { background-color: #f1f5f9 !important; }
+html.light .bg-slate-900 { background-color: #ffffff !important; }
+html.light .bg-slate-900\/50 { background-color: rgba(255,255,255,0.8) !important; }
+html.light .bg-slate-900\/80 { background-color: rgba(255,255,255,0.9) !important; }
+html.light .bg-slate-800 { background-color: #f1f5f9 !important; }
+html.light .bg-slate-800\/50 { background-color: rgba(241,245,249,0.5) !important; }
+html.light .bg-slate-800\/30 { background-color: rgba(241,245,249,0.3) !important; }
+
+/* Light mode text colors */
+html.light .text-white { color: #1e293b !important; }
+html.light .text-slate-200 { color: #334155 !important; }
+html.light .text-slate-300 { color: #475569 !important; }
+html.light .text-slate-400 { color: #64748b !important; }
+html.light .text-slate-500 { color: #94a3b8 !important; }
+html.light .text-slate-600 { color: #94a3b8 !important; }
+
+/* Light mode borders */
+html.light .border-slate-800 { border-color: #e2e8f0 !important; }
+html.light .border-slate-700 { border-color: #cbd5e1 !important; }
+
+/* Light mode glass panel */
+html.light .glass-panel {
+  background: rgba(255, 255, 255, 0.9) !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Light mode inputs */
+html.light .bg-slate-950 input,
+html.light .bg-slate-950 textarea,
+html.light input.bg-slate-950,
+html.light textarea.bg-slate-950 {
+  background-color: #f8fafc !important;
+  color: #1e293b !important;
+}
+
+/* Light mode scrollbar */
+html.light ::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+html.light ::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+}
+
+html.light ::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
 h1, h2, h3, h4, h5, h6 {
   font-family: 'Plus Jakarta Sans', sans-serif;
   letter-spacing: -0.02em;
