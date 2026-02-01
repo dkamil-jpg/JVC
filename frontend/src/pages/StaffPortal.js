@@ -27,6 +27,7 @@ import {
 const StaffPortal = () => {
   const navigate = useNavigate();
   const { user, logout, isManager, isAdmin, api } = useAuth();
+  const { isDark, toggleTheme } = useTheme();
   const { 
     patients, queue, selectedPatient, setSelectedPatient, loading,
     loadDashboardData, loadPatient, updatePatient, getPatientVisits, createVisit, getPatientAudit
