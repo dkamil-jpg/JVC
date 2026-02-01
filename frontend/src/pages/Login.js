@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,6 +11,7 @@ const Login = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const mode = searchParams.get('mode') || 'staff';
+  const { isDark } = useTheme();
   
   const { login } = useAuth();
   
@@ -42,36 +44,33 @@ const Login = () => {
   };
 
   const title = mode === 'reports' ? 'Analytics Access' : 'Staff Access';
-  const accentColor = mode === 'reports' ? 'violet' : 'blue';
 
   return (
     <div 
       data-testid="login-view"
-      className="min-h-screen flex flex-col items-center justify-center p-4 bg-slate-950"
-      style={{
+      className={`min-h-screen flex flex-col items-center justify-center p-4 ${isDark ? 'bg-slate-950' : 'bg-gray-100'}`}
+      style={isDark ? {
         backgroundImage: 'linear-gradient(to bottom right, rgba(2,6,23,0.97), rgba(2,6,23,0.95)), url(https://images.unsplash.com/photo-1645477704075-cb3d14b349ee?w=1920&q=80)',
         backgroundSize: 'cover',
         backgroundPosition: 'center'
-      }}
+      } : {}}
     >
       <div className="glass-panel p-8 w-full max-w-sm relative rounded-2xl">
         <button 
           data-testid="login-back-btn"
           onClick={() => navigate('/')}
-          className="absolute top-4 left-4 text-slate-500 hover:text-white transition-colors"
+          className={`absolute top-4 left-4 transition-colors ${isDark ? 'text-slate-500 hover:text-white' : 'text-gray-400 hover:text-gray-900'}`}
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
 
-        <h2 
-          className={`text-2xl font-bold mb-8 text-center text-white`}
-        >
+        <h2 className={`text-2xl font-bold mb-8 text-center ${isDark ? 'text-white' : 'text-gray-900'}`}>
           {title}
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="username" className="text-slate-400">Username</Label>
+            <Label htmlFor="username" className={isDark ? 'text-slate-400' : 'text-gray-600'}>Username</Label>
             <Input
               data-testid="login-username-input"
               id="username"
@@ -79,13 +78,13 @@ const Login = () => {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               placeholder="Enter username"
-              className="bg-slate-950 border-slate-800 focus:border-blue-500 h-12"
+              className={`h-12 ${isDark ? 'bg-slate-950 border-slate-800' : 'bg-white border-gray-300'} focus:border-blue-500`}
               autoFocus
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password" className="text-slate-400">Password</Label>
+            <Label htmlFor="password" className={isDark ? 'text-slate-400' : 'text-gray-600'}>Password</Label>
             <Input
               data-testid="login-password-input"
               id="password"
@@ -93,7 +92,7 @@ const Login = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter password"
-              className="bg-slate-950 border-slate-800 focus:border-blue-500 h-12"
+              className={`h-12 ${isDark ? 'bg-slate-950 border-slate-800' : 'bg-white border-gray-300'} focus:border-blue-500`}
             />
           </div>
 
@@ -126,7 +125,7 @@ const Login = () => {
         </form>
       </div>
 
-      <footer className="mt-8 text-center text-xs text-slate-600">
+      <footer className={`mt-8 text-center text-xs ${isDark ? 'text-slate-600' : 'text-gray-500'}`}>
         System by{' '}
         <a href="https://kamildyczkowski.com" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
           Kamil Dyczkowski
