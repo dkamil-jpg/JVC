@@ -520,7 +520,7 @@ const StaffPortal = () => {
         )}
 
         <div className="p-4 border-t border-slate-800 mt-auto">
-          <div className="text-[10px] text-slate-600 text-center">System by <a href="mailto:dyczkowski.kamil@gmail.com" className="text-blue-500">Kamil Dyczkowski</a> 2026</div>
+          <div className="text-[10px] text-slate-600 text-center">System by <a href="https://kamildyczkowski.com" target="_blank" rel="noopener noreferrer" className="text-blue-500">Kamil Dyczkowski</a> 2026</div>
         </div>
       </aside>
 
