@@ -521,7 +521,19 @@ const StaffPortal = () => {
           </ScrollArea>
         )}
 
-        <div className="p-4 border-t border-slate-800 mt-auto">
+        <div className="p-4 border-t border-slate-800 mt-auto space-y-3">
+          {/* Theme Toggle */}
+          <button
+            onClick={toggleTheme}
+            className={`w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${
+              isDark 
+                ? 'bg-slate-800 hover:bg-slate-700 text-slate-300' 
+                : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+            }`}
+          >
+            {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            {isDark ? 'Light Mode' : 'Dark Mode'}
+          </button>
           <div className="text-[10px] text-slate-600 text-center">System by <a href="https://kamildyczkowski.com" target="_blank" rel="noopener noreferrer" className="text-blue-500">Kamil Dyczkowski</a> 2026</div>
         </div>
       </aside>
