@@ -82,16 +82,16 @@ const Launcher = () => {
               data-testid="launcher-staff-btn"
               onClick={handleStaffClick}
               className={`group relative overflow-hidden rounded-3xl border p-10 w-full md:w-80 cursor-pointer transition-all duration-300 hover:shadow-[0_0_30px_rgba(59,130,246,0.4)] hover:border-blue-500 transform hover:-translate-y-2 ${
-                isDark ? 'bg-slate-900/80 border-slate-800' : 'bg-white/80 border-gray-200'
+                isDark ? 'bg-slate-900/80 border-slate-800' : 'bg-slate-200/80 border-slate-400/50'
               }`}
             >
               <div className="absolute inset-0 bg-gradient-to-b from-blue-900/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               <div className="relative z-10 flex flex-col items-center h-full justify-center">
-                <div className={`p-5 rounded-2xl mb-6 transition-colors shadow-inner ${isDark ? 'bg-slate-950' : 'bg-gray-100'}`}>
-                  <Stethoscope className={`w-16 h-16 group-hover:text-blue-500 transition-colors ${isDark ? 'text-slate-500' : 'text-gray-400'}`} />
+                <div className={`p-5 rounded-2xl mb-6 transition-colors shadow-inner ${isDark ? 'bg-slate-950' : 'bg-slate-300'}`}>
+                  <Stethoscope className={`w-16 h-16 group-hover:text-blue-500 transition-colors ${isDark ? 'text-slate-500' : 'text-slate-500'}`} />
                 </div>
-                <h2 className={`text-2xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>Staff Portal</h2>
-                <p className={`text-sm font-medium ${isDark ? 'text-slate-500' : 'text-gray-500'}`}>Administration & Records</p>
+                <h2 className={`text-2xl font-bold mb-2 ${isDark ? 'text-white' : 'text-slate-800'}`}>Staff Portal</h2>
+                <p className={`text-sm font-medium ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>Administration & Records</p>
               </div>
             </div>
 
@@ -100,16 +100,16 @@ const Launcher = () => {
               data-testid="launcher-reports-btn"
               onClick={handleReportsClick}
               className={`group relative overflow-hidden rounded-3xl border p-10 w-full md:w-80 cursor-pointer transition-all duration-300 hover:shadow-[0_0_30px_rgba(139,92,246,0.4)] hover:border-violet-500 transform hover:-translate-y-2 ${
-                isDark ? 'bg-slate-900/80 border-slate-800' : 'bg-white/80 border-gray-200'
+                isDark ? 'bg-slate-900/80 border-slate-800' : 'bg-slate-200/80 border-slate-400/50'
               }`}
             >
               <div className="absolute inset-0 bg-gradient-to-b from-violet-900/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               <div className="relative z-10 flex flex-col items-center h-full justify-center">
-                <div className={`p-5 rounded-2xl mb-6 transition-colors shadow-inner ${isDark ? 'bg-slate-950' : 'bg-gray-100'}`}>
-                  <BarChart3 className={`w-16 h-16 group-hover:text-violet-500 transition-colors ${isDark ? 'text-slate-500' : 'text-gray-400'}`} />
+                <div className={`p-5 rounded-2xl mb-6 transition-colors shadow-inner ${isDark ? 'bg-slate-950' : 'bg-slate-300'}`}>
+                  <BarChart3 className={`w-16 h-16 group-hover:text-violet-500 transition-colors ${isDark ? 'text-slate-500' : 'text-slate-500'}`} />
                 </div>
-                <h2 className={`text-2xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>Clinic Analytics</h2>
-                <p className={`text-sm font-medium ${isDark ? 'text-slate-500' : 'text-gray-500'}`}>Business Intelligence</p>
+                <h2 className={`text-2xl font-bold mb-2 ${isDark ? 'text-white' : 'text-slate-800'}`}>Clinic Analytics</h2>
+                <p className={`text-sm font-medium ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>Business Intelligence</p>
               </div>
             </div>
 
@@ -118,16 +118,16 @@ const Launcher = () => {
               data-testid="launcher-kiosk-btn"
               onClick={() => navigate('/kiosk')}
               className={`group relative overflow-hidden rounded-3xl border p-10 w-full md:w-80 cursor-pointer transition-all duration-300 hover:shadow-[0_0_30px_rgba(16,185,129,0.4)] hover:border-emerald-500 transform hover:-translate-y-2 ${
-                isDark ? 'bg-slate-900/80 border-slate-800' : 'bg-white/80 border-gray-200'
+                isDark ? 'bg-slate-900/80 border-slate-800' : 'bg-slate-200/80 border-slate-400/50'
               }`}
             >
               <div className="absolute inset-0 bg-gradient-to-b from-emerald-900/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               <div className="relative z-10 flex flex-col items-center h-full justify-center">
-                <div className={`p-5 rounded-2xl mb-6 transition-colors shadow-inner ${isDark ? 'bg-slate-950' : 'bg-gray-100'}`}>
-                  <UserCheck className={`w-16 h-16 group-hover:text-emerald-500 transition-colors ${isDark ? 'text-slate-500' : 'text-gray-400'}`} />
+                <div className={`p-5 rounded-2xl mb-6 transition-colors shadow-inner ${isDark ? 'bg-slate-950' : 'bg-slate-300'}`}>
+                  <UserCheck className={`w-16 h-16 group-hover:text-emerald-500 transition-colors ${isDark ? 'text-slate-500' : 'text-slate-500'}`} />
                 </div>
-                <h2 className={`text-2xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>Patient Check-In</h2>
-                <p className={`text-sm font-medium ${isDark ? 'text-slate-500' : 'text-gray-500'}`}>Self-Service Registration</p>
+                <h2 className={`text-2xl font-bold mb-2 ${isDark ? 'text-white' : 'text-slate-800'}`}>Patient Check-In</h2>
+                <p className={`text-sm font-medium ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>Self-Service Registration</p>
               </div>
             </div>
           </div>
