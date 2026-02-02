@@ -32,13 +32,13 @@ const Launcher = () => {
   return (
     <div 
       data-testid="launcher-view" 
-      className={`min-h-screen flex flex-col ${isDark ? 'bg-slate-950' : 'bg-gray-100'}`}
+      className={`min-h-screen flex flex-col ${isDark ? 'bg-slate-950' : 'bg-slate-300'}`}
       style={isDark ? {
         backgroundImage: 'linear-gradient(to bottom, rgba(2,6,23,0.95), rgba(2,6,23,0.98)), url(https://images.unsplash.com/photo-1584884013345-88b9cf247c0c?w=1920&q=80)',
         backgroundSize: 'cover',
         backgroundPosition: 'center'
       } : {
-        backgroundImage: 'linear-gradient(to bottom, rgba(249,250,251,0.95), rgba(243,244,246,0.98)), url(https://images.unsplash.com/photo-1584884013345-88b9cf247c0c?w=1920&q=80)',
+        backgroundImage: 'linear-gradient(to bottom, rgba(203,213,225,0.95), rgba(226,232,240,0.98)), url(https://images.unsplash.com/photo-1584884013345-88b9cf247c0c?w=1920&q=80)',
         backgroundSize: 'cover',
         backgroundPosition: 'center'
       }}
