@@ -48,12 +48,16 @@ const Login = () => {
   return (
     <div 
       data-testid="login-view"
-      className={`min-h-screen flex flex-col items-center justify-center p-4 ${isDark ? 'bg-slate-950' : 'bg-gray-100'}`}
+      className={`min-h-screen flex flex-col items-center justify-center p-4 ${isDark ? 'bg-slate-950' : 'bg-slate-300'}`}
       style={isDark ? {
         backgroundImage: 'linear-gradient(to bottom right, rgba(2,6,23,0.97), rgba(2,6,23,0.95)), url(https://images.unsplash.com/photo-1645477704075-cb3d14b349ee?w=1920&q=80)',
         backgroundSize: 'cover',
         backgroundPosition: 'center'
-      } : {}}
+      } : {
+        backgroundImage: 'linear-gradient(to bottom right, rgba(203,213,225,0.97), rgba(226,232,240,0.95)), url(https://images.unsplash.com/photo-1645477704075-cb3d14b349ee?w=1920&q=80)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center'
+      }}
     >
       <div className="glass-panel p-8 w-full max-w-sm relative rounded-2xl">
         <button 
