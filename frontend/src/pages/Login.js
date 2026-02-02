@@ -74,7 +74,7 @@ const Login = () => {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="username" className={isDark ? 'text-slate-400' : 'text-gray-600'}>Username</Label>
+            <Label htmlFor="username" className={isDark ? 'text-slate-400' : 'text-slate-600'}>Username</Label>
             <Input
               data-testid="login-username-input"
               id="username"
@@ -82,13 +82,13 @@ const Login = () => {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               placeholder="Enter username"
-              className={`h-12 ${isDark ? 'bg-slate-950 border-slate-800' : 'bg-white border-gray-300'} focus:border-blue-500`}
+              className={`h-12 ${isDark ? 'bg-slate-950 border-slate-800' : 'bg-slate-200 border-slate-400'} focus:border-blue-500`}
               autoFocus
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password" className={isDark ? 'text-slate-400' : 'text-gray-600'}>Password</Label>
+            <Label htmlFor="password" className={isDark ? 'text-slate-400' : 'text-slate-600'}>Password</Label>
             <Input
               data-testid="login-password-input"
               id="password"
@@ -96,7 +96,7 @@ const Login = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter password"
-              className={`h-12 ${isDark ? 'bg-slate-950 border-slate-800' : 'bg-white border-gray-300'} focus:border-blue-500`}
+              className={`h-12 ${isDark ? 'bg-slate-950 border-slate-800' : 'bg-slate-200 border-slate-400'} focus:border-blue-500`}
             />
           </div>
 
